@@ -297,7 +297,7 @@ $.widget("o.adorn",{
                            // placeholder в IE8
                            // Есть аттрибут плейсхолдер и не произошло изменения содержимого,
                            // то пропускаем значение элемента.
-                           if ($.browser.msie && $(element).attr('placeholder')!=undefined && $(element).attr('placeholder')!='' && $(element).attr('placeholder')==$(element).val()) {
+                           if ($.hasOwnProperty('browser') && $.browser.hasOwnProperty('msie') && $(element).attr('placeholder')!=undefined && $(element).attr('placeholder')!='' && $(element).attr('placeholder')==$(element).val()) {
 			      ds2 = '';
                            } else {
                               d2s = $(element).val();
