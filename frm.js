@@ -9,43 +9,41 @@
 (function ($, undefined) {
   $.widget("o.frm",{
  options: {
-     url: null,
-     frmObject: null,
-     params: {},
-     _paramsSended: {},
-     saveAction: 'save',
-     applyAction: 'apply',
-     okAction: 'ok',
-     loadAction: 'load',
-     showButtons: ['apply', 'save'],
-     buttons: [],
-     width: '950px',
-     useCtrlEnter:true,
-     _title: null,
-     showTitle: true
+     url           : null,
+     frmObject     : null,
+     params        : {},
+     _paramsSended : {},
+     saveAction    : 'save',
+     applyAction   : 'apply',
+     okAction      : 'ok',
+     loadAction    : 'load',
+     showButtons   : ['apply', 'save'],
+     buttons       : [],
+     width         : '950px',
+     useCtrlEnter  : true,
+     _title        : null,
+     showTitle     : true
  },
-      close : function () {
+setParam: function(paramName,paramValue) {
+  this.options.params[paramName]=paramValue;
+},
+/** Открыть **/
+open : function () {
+          this._fillLocal();
+          this._fillRemote();
+    /****************************************
+     * Если id не указан, то данные
+     * по средствам AJAX мы не получим.
+     ***************************************/
+
+          if (this.options.id==null) {
+              this.options.frmObject.dialog('open');
+          };
+},
+close : function () {
           var self=this;
           self.options.frmObject.dialog('close');
           self._trigger('_afterclose',{},{parent:self});
-      },
-      setParam: function(paramName,paramValue) {
-  this.options.params[paramName]=paramValue;
-},
-      /** Открыть **/
-open : function () {
-
-          this._fillLocal();
-          this._fillRemote();
-          /****************************************
-           * Если id не указан, то данные
-           * по средствам AJAX мы не получим.
-           ***************************************/
-
-          if (this.options.id==null && this._beforeOpen()!==false) {
-              this.options.frmObject.dialog('open');
-          };
-
 },
 /** Установить искомый ID **/
 setId   : function (id)  {
@@ -74,15 +72,15 @@ getParams : function () {
 getParam  : function (param) {
   return this.options.params[param];
 },
-getParamSended : function (param) {
-    var self=this;
+      getParamSended : function (param) {
+          var self=this;
 
-    if (self.options._paramsSended.hasOwnProperty(param)) {
-        return self.options._paramsSended[param];
-    };
-    return null;
-},
+          if (self.options._paramsSended.hasOwnProperty(param)) {
+              return self.options._paramsSended[param];
+          };
 
+          return null;
+      },
 /** Полная очистка форма + пар-ры **/
 clear: function () {
   this._clear();
@@ -90,83 +88,83 @@ clear: function () {
 },
 /** Отобразить **/
 _create : function (conf) {
-
-
     $.extend(this.options,conf);
     this.options.frmObject = this.element;
     this._createDialog();
 },
-/**
+
+      /**
        * Создать виджет
        * @private
-       */
+*/
 _createDialog : function () {
-          var self=this;
-          var buttons=[];
+          var self=this,
+             buttons=[];
+    $.extend(buttons,self.options.buttons);
 
-          $.extend(buttons,self.options.buttons);
 
-          self.options.pid = 'frm-' + $(self.element).attr('id');
+    self.options.pid = 'frm-' + $(self.element).attr('id');
 
-          if ($.inArray('apply',self.options.showButtons)>-1) {
-              buttons.push({
-                         text:'Применить',
-                         click:function () {
-                                           self.options._currAction=self.options.applyAction;
-                                           self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
+    if ($.inArray('apply',self.options.showButtons)>-1) {
+        buttons.push({
+            text:'Применить',
+            click:function () {
+                self.options._currAction=self.options.applyAction;
+                self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
 
-                                           if (self._beforeSave()===false) {
-                                               return;
-                                           };
-                                           self._saveEdit();
-                         },
-                  'class':'btn'
-              });
-          };
+                if (self._beforeSave()===false) {
+                    return;
+                };
+                self._saveEdit();
+            },
+            'class':'btn'
+        });
+    };
 
-          if ($.inArray('save',self.options.showButtons)>-1) {
-              buttons.push({
-                      text:'Сохранить',
-                      click:function () {
-						
-                                         self.options._currAction=self.options.saveAction;
-                                         self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
+    if ($.inArray('save',self.options.showButtons)>-1) {
+        buttons.push({
+            text:'Сохранить',
+            click:function () {
+                self.options._currAction=self.options.saveAction;
+                self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
 
-                                        if (self._beforeSave()===false) {
-                                            return;
-                                        };
-                                         self._saveEdit();
-                                        },
-                      'class':'btn'
-              });
-          };
+                if (self._beforeSave()===false) {
+                    return;
+                };
+                self._saveEdit();
+            },
+            'class':'btn'
+        });
+    };
 
-          if ($.inArray('ok',self.options.showButtons)>-1) {
-              buttons.push({
-                  text:'ОК',
-                  click:function () {
+    if ($.inArray('ok',self.options.showButtons)>-1) {
+        buttons.push({
+            text:'ОК',
+            click:function () {
 
-                      self.options._currAction=self.options.okAction;
-                      self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
+                self.options._currAction=self.options.okAction;
+                self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
 
-                      if (self._beforeSave()===false) {
-                          return;
-                      };
-                      self._saveEdit();
-                  },
-                  'class':'btn'
-              });
-          };
+                if (self._beforeSave()===false) {
+                    return;
+                };
+                self._saveEdit();
+            },
+            'class':'btn'
+        });
+    };
 
-          buttons.push({
+    buttons.push({
                text:'Отмена',
                click:function () {
                    self.options._currAction='cancel';
                    self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
                    self._clear();
                },
-              'class':'btn'
+            'class':'btn'
            });
+
+
 
           self._adorn();
 
@@ -176,30 +174,19 @@ _createDialog : function () {
               modal:true,
               buttons:buttons,
               dialogClass: self.options.pid,
-              closeText: "Закрыть",
               beforeClose : function (event,ui) {
                   self._trigger('_beforeclose',{},{parent:self,event:event,ui:ui,action:self.options._currAction});
               }
           });
+
+          if (self.options.height) {
+              self.options.frmObject.dialog('option','height',self.options.height);
+          };
+
           // Запоминаем первоначальный заголовок
           this.options._title=this.options.frmObject.dialog('option','title');
 
-          var closeButton=$('<div style="position:absolute;right:18px;top:17px"></div>').
-                        append($('<a href="#"><img src="../../../images/verstka/close.jpg"></a>').click(function (e) {
-                            self.close();
-                            return false;
-                        }));
-
-          if  (!self.options.showTitle) {
-        $('.' + self.options.pid).find('.ui-dialog-titlebar').remove();
-        $('.' + self.options.pid).find('.ui-tabs-nav').append(closeButton);
-    } else {
-        $('.' + self.options.pid).find('.ui-dialog-title').append(closeButton);
-        $('.' + self.options.pid).find('.ui-dialog-titlebar-close').remove();
-    };
-
           self._bindKeyEvents();
-
       },
 
 /**
@@ -214,15 +201,6 @@ _createDialog : function () {
             processData = !hasFileReader,
             contentType = hasFileReader ? false : 'application/x-www-form-urlencoded; charset=UTF-8';
 
-
-    /**
-     * Если не прописан внешний URL, то считаем, что сохранение прошло.
-     */
-    if (self.options.url==null) {
-        self._afterSave();
-        return;
-    };
-
           // Если есть считыватель файлов, то adorn вернет
           // FormData иначе {}
 
@@ -231,16 +209,21 @@ _createDialog : function () {
             params = new FormData();
             params=self.element.adorn('get',params);
 
-            $.each(self.options.params,function (key,value) {
-                        params.append(key,value);
-             });
+
+        	    if (self.options.id) {
+        	        params.append('id',self.options.id);
+        	    };
+
+                $.each(self.options.params,function (key,value) {
+                params.append(key,value);
+            });
          } else {
                 params=self.element.adorn('get');
+                params['id']=self.options.id;
                 $.extend(params,self.options.params);
-         };  
+         };
 
-
-    $.ajax({
+        $.ajax({
         url: url,
         data: params,
         processData: processData,
@@ -270,21 +253,19 @@ _fillRemote : function () {
             $.extend(self.options.params,{id:self.options.id});
 
 
-            if (self.options.id!=undefined) {
-                this._doAction(self.options.loadAction,self.options.params,function (result) {
+    if (self.options.id!=undefined) {
 
-                    self.element.adorn('fillElements',result);
-
-                    self._trigger('_afterload',{},{parent:self,result:result});
-
-                    /**
-                     * Если айдишник указан, то данные мы обязаны получить.
-                     */
-                     if (self.options.id) {
-                        self.options.frmObject.dialog('open');
-                    }
-                });
+        this._doAction(self.options.loadAction,self.options.params,function (result) {
+            self.element.adorn('fillElements',result);
+            self._trigger('_afterload',{},{parent:self,result:result});
+            /********************************************************
+             * Если айдишник указан, то данные мы обязаны получить. *
+             ********************************************************/
+            if (self.options.id) {
+                self.options.frmObject.dialog('open');
             };
+        });
+    };
         },
 /** Загрузить с локальных параметров **/
 _fillLocal  : function () {
@@ -316,7 +297,7 @@ _doAction     : function (name,params,onEndAction) {
             });
         },
 _makeUrl      : function (action) {
-            return this.options.url+(action!=null ? '/'+action : "");
+            return this.options.url + (action != null ? '/' + action : "");
         },
 _bindToEvents: function () {
             var self=this;
@@ -355,12 +336,12 @@ _afterSave : function (res) {
           self.close();
       },
 _beforeOpen: function () {
-    var self=this;
-    return self._trigger('_beforeopen',{},{parent:self});
- },
+          var self=this;
+          return self._trigger('_beforeopen',{},{parent:self});
+},
 _beforeSave: function () {
-    var self = this;
-    return self._trigger('_beforesave',{},{parent:self,action:self.options._currAction});
+          var self = this;
+          return self._trigger('_beforesave',{},{parent:self,action:self.options._currAction});
 },
 _afterCancel : function () {
           var self=this;
@@ -377,84 +358,27 @@ _afterCancel : function () {
      return this.options.frmObject.dialog('option','title');
  },
 _bindKeyEvents: function () {
-    var self=this;
+          var self=this;
 
+          if (self.options.useCtrlEnter) {
+              $('.'+self.options.pid).on('keyup',function (e) {
 
+                  if ((e.ctrlKey || e.metaKey) && (e.keyCode == 13 || e.keyCode == 10)) {
 
-    if (self.options.useCtrlEnter) {
-        $('.'+self.options.pid).on('keyup',function (e) {
+                      self.options._currAction=self.options.okAction;
+                      self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
 
-            if ((e.ctrlKey || e.metaKey) && (e.keyCode == 13 || e.keyCode == 10)) {
+                      if (self._beforeSave()===false) {
+                          return;
+                      };
 
-                self.options._currAction=self.options.okAction;
-                self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
-
-                if (self._beforeSave()===false) {
-                    return;
-                };
-
-                self._saveEdit();
-            };
-        });
-    };
+                      self._saveEdit();
+                  };
+              });
+          };
 
 }
 });
 })( jQuery );
 
-/*
-jQuery(function($) {
-//alert($('.footer').css('position'));
- PopUpHide();
-  // здесь код скрипта, где в $ будет находиться объект, предоставляющий доступ к функциям jQuery
-/*
-$(".wibor_ustr_list").hover(function() {
-$(".wiborite_ustr").removeClass('opa');
-});
 
-$(".wiborite_ustr").hover(function() {
-$(".wiborite_ustr").removeClass('opa');
-});*/
-/*$(".wibor_ustr_pic").click(function() {
-
-
-});
-
-/*$(document).click(function() {
-
-//$( this ).removeClass( "hover" );
-//$( ".wiborite_ustr" ).mouseleave();
-//$( ".wibor_ustr_list" ).mouseleave();
-/*
-if (jQuery(this).attr('class') == 'wibor_ustr_pic') {
-alert(jQuery(this).attr('class'));
-$(".wiborite_ustr").css("opacity",'1');
-$(".wiborite_ustr").css("left",'0');
-} else {
-alert(jQuery(this).attr('class'));
-$(".wiborite_ustr").css("opacity",'0');
-$(".wiborite_ustr").css("left",'-99999px');
-}
-*/
-//$(".wiborite_ustr").css("left",'-99999999999px');
-
-//$(".wiborite_ustr").addClass("opa");
-//$(".wiborite_ustr").removeClass('opa');
-/*
-});
-
-$( ".dob_ustr" ).click(function() {
-
-    $("#popup1").show();
-});
-
-})*/
-/*
-function PopUpShow(){
-
-    $("#popup1").show();
-}
-function PopUpHide(){
-    $("#popup1").hide();
-}
-;*/
