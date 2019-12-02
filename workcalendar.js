@@ -20,6 +20,10 @@ $.widget("o.workcalendar",{
            'icon':'/images/128x128/pause-gray.png',
            'text':'Для истории исключить из распределения'
         },
+         'criticalEvent': {
+              'icon':'/images/32x32/thunder3.png',
+              'text':'ЧС'
+          },
         'other': {
             'text':'Иное'
         }
