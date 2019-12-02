@@ -179,11 +179,17 @@ $.widget("o.workcalendar",{
 
    self.element.find('td.workcalendar-table-td').mousedown(function(){
     $(this).toggleClass('workcalendar-selected');
-    self.element.find('td.workcalendar-table-td').on('mouseenter',function(){
+
+     self.element.find('td.workcalendar-table-td').on('mouseenter',function(){
       $(this).toggleClass('workcalendar-selected');
     });
+
   }).mouseup(function(){
     $('td.workcalendar-table-td').off('mouseenter');
+  });
+
+  self.element.find('td.workcalendar-table-td').dblclick(function () {
+        //alert('Нажал два раза');
   });
 
  /*****************************************************
