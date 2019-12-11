@@ -29,6 +29,10 @@ setParam: function(paramName,paramValue) {
 },
 /** Открыть **/
 open : function () {
+
+        if (this._trigger('_beforeopen',{},{parent:this,action:this.options._currAction})===false) {
+            return;
+        };
           this._fillLocal();
           this._fillRemote();
     /****************************************
