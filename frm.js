@@ -164,6 +164,7 @@ _createDialog : function () {
                    self.options._currAction='cancel';
                    self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
                    self._clear();
+                   self.close();
                },
             'class':'btn'
            });
@@ -218,7 +219,7 @@ _createDialog : function () {
         	        params.append('id',self.options.id);
         	    };
 
-                $.each(self.options.params,function (key,value) {
+            $.each(self.options.params,function (key,value) {
                 params.append(key,value);
             });
          } else {
@@ -228,18 +229,18 @@ _createDialog : function () {
          };
 
         $.ajax({
-        url: url,
-        data: params,
-        processData: processData,
-        type: 'POST',
-        cache:false,
-        contentType: contentType,
-        dataType:'json',
-        success: function (res) {
-            $.extend(self.options._paramsSended,self.element.adorn('get'));
-            self._afterSave(res);
-        }
-    });
+                url: url,
+                data: params,
+                processData: processData,
+                type: 'POST',
+                cache:false,
+                contentType: contentType,
+                dataType:'json',
+                success: function (res) {
+                    $.extend(self.options._paramsSended,self.element.adorn('get'));
+                    self._afterSave(res);
+                }
+            });
 
     },
 
@@ -308,10 +309,8 @@ _bindToEvents: function () {
             var params={};
             self.element.bind('adorn_queuecomplete',function (e,queueData) {
                     self._afterSave(queueData);
-                });
-            self.element.bind('adorn_onclear',function (e,rrr) {
-                    self.close();
             });
+
             self.element.bind('adorn_onready',function(e,finfo) {
 
                 $.extend(params,self.options.params);
@@ -335,9 +334,13 @@ _bindToEvents: function () {
 },
 _afterSave : function (res) {
           var self=this;
+
+          if (self._trigger('_aftersave',{},{parent:self,result:res})===false) {
+               return false;
+          };
+
           self._clear();
-          self._trigger('_aftersave',{},{parent:self,result:res});
-          self.close();
+          self.close()
       },
 _beforeOpen: function () {
           var self=this;
@@ -349,7 +352,6 @@ _beforeSave: function () {
 },
 _afterCancel : function () {
           var self=this;
-          self._trigger('_aftersave',{},{parent:self});
           self.close();
       },
  setTitle: function (title) {
