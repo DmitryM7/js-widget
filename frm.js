@@ -25,6 +25,10 @@
      showTitle     : true
  },
 setParam: function(paramName,paramValue) {
+
+  if (paramName=='id') {
+      this.options.id=paramValue;
+  };
   this.options.params[paramName]=paramValue;
 },
 /** Открыть **/
@@ -74,9 +78,14 @@ getParams : function () {
           return this.options.params;
       },
 getParam  : function (param) {
+
+  if (param=='id') {
+      return this.options.id;
+  };
   return this.options.params[param];
 },
-      getParamSended : function (param) {
+
+getParamSended : function (param) {
           var self=this;
 
           if (self.options._paramsSended.hasOwnProperty(param)) {
@@ -84,7 +93,7 @@ getParam  : function (param) {
           };
 
           return null;
-      },
+},
 /** Полная очистка форма + пар-ры **/
 clear: function () {
   this._clear();
@@ -163,8 +172,7 @@ _createDialog : function () {
                click:function () {
                    self.options._currAction='cancel';
                    self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
-                   self._clear();
-                   self.close();
+                   self._afterCancel();
                },
             'class':'btn'
            });
@@ -181,6 +189,12 @@ _createDialog : function () {
               dialogClass: self.options.pid,
               beforeClose : function (event,ui) {
                   self._trigger('_beforeclose',{},{parent:self,event:event,ui:ui,action:self.options._currAction});
+
+                  /** Данная ветка отрабатывает событие закрытия по Esc **/
+
+                  if (!self.options._currAction || self.options._currAction=='cancel') {
+                      self._trigger('_aftercancel',{},{parent:self});
+                  };
               }
           });
 
@@ -353,6 +367,7 @@ _beforeSave: function () {
 _afterCancel : function () {
           var self=this;
           self.close();
+          self._trigger('_aftercancel',{},{parent:self});
       },
  setTitle: function (title) {
     this.options.frmObject.dialog('option','title',title);
