@@ -56,7 +56,11 @@ close : function () {
 },
 /** Установить искомый ID **/
 setId   : function (id)  {
-    console.log(this.options);
+   /*
+     Это присвоение обязательно, так как от предыдущих
+     отправок может остаться айдишник в параметрах.
+    */
+   this.options.params.id=id;
    this.options.id=id;
  },
 
@@ -234,9 +238,7 @@ _createDialog : function () {
         	    if (self.options.id) {
                     try {
                         params.delete('id')
-                    } catch (e) {
-
-                    };
+                    } catch (e) { };
         	        params.append('id',self.options.id);
         	    };
 
