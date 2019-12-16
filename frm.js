@@ -28,6 +28,7 @@ setParam: function(paramName,paramValue) {
 
   if (paramName=='id') {
       this.options.id=paramValue;
+      return;
   };
   this.options.params[paramName]=paramValue;
 },
@@ -55,6 +56,7 @@ close : function () {
 },
 /** Установить искомый ID **/
 setId   : function (id)  {
+    console.log(this.options);
    this.options.id=id;
  },
 
@@ -230,11 +232,18 @@ _createDialog : function () {
 
 
         	    if (self.options.id) {
+                    try {
+                        params.delete('id')
+                    } catch (e) {
+
+                    };
         	        params.append('id',self.options.id);
         	    };
 
             $.each(self.options.params,function (key,value) {
-                params.append(key,value);
+                if (key!='id') {
+                    params.append(key,value);
+                };
             });
          } else {
                 params=self.element.adorn('get');
