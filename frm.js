@@ -25,10 +25,19 @@
      showTitle     : true
  },
 setParam: function(paramName,paramValue) {
+
+  if (paramName=='id') {
+      this.options.id=paramValue;
+      return;
+  };
   this.options.params[paramName]=paramValue;
 },
 /** Открыть **/
 open : function () {
+
+        if (this._trigger('_beforeopen',{},{parent:this,action:this.options._currAction})===false) {
+            return;
+        };
           this._fillLocal();
           this._fillRemote();
     /****************************************
@@ -47,6 +56,11 @@ close : function () {
 },
 /** Установить искомый ID **/
 setId   : function (id)  {
+   /*
+     Это присвоение обязательно, так как от предыдущих
+     отправок может остаться айдишник в параметрах.
+    */
+   this.options.params.id=id;
    this.options.id=id;
  },
 
@@ -70,9 +84,14 @@ getParams : function () {
           return this.options.params;
       },
 getParam  : function (param) {
+
+  if (param=='id') {
+      return this.options.id;
+  };
   return this.options.params[param];
 },
-      getParamSended : function (param) {
+
+getParamSended : function (param) {
           var self=this;
 
           if (self.options._paramsSended.hasOwnProperty(param)) {
@@ -80,7 +99,7 @@ getParam  : function (param) {
           };
 
           return null;
-      },
+},
 /** Полная очистка форма + пар-ры **/
 clear: function () {
   this._clear();
@@ -159,7 +178,7 @@ _createDialog : function () {
                click:function () {
                    self.options._currAction='cancel';
                    self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
-                   self._clear();
+                   self._afterCancel();
                },
             'class':'btn'
            });
@@ -176,6 +195,12 @@ _createDialog : function () {
               dialogClass: self.options.pid,
               beforeClose : function (event,ui) {
                   self._trigger('_beforeclose',{},{parent:self,event:event,ui:ui,action:self.options._currAction});
+
+                  /** Данная ветка отрабатывает событие закрытия по Esc **/
+
+                  if (!self.options._currAction || self.options._currAction=='cancel') {
+                      self._trigger('_aftercancel',{},{parent:self});
+                  };
               }
           });
 
@@ -185,6 +210,20 @@ _createDialog : function () {
 
           // Запоминаем первоначальный заголовок
           this.options._title=this.options.frmObject.dialog('option','title');
+
+          var closeButton=$('<div style="position:absolute;right:18px;top:17px"></div>').
+              append($('<a href="#"><img src="../../../images/verstka/close.jpg"></a>').click(function (e) {
+                  self.close();
+                  return false;
+              }));
+
+          if  (!self.options.showTitle) {
+              $('.' + self.options.pid).find('.ui-dialog-titlebar').remove();
+              $('.' + self.options.pid).find('.ui-tabs-nav').append(closeButton);
+          } else {
+              $('.' + self.options.pid).find('.ui-dialog-title').append(closeButton);
+              $('.' + self.options.pid).find('.ui-dialog-titlebar-close').remove();
+          };
 
           self._bindKeyEvents();
       },
@@ -211,11 +250,16 @@ _createDialog : function () {
 
 
         	    if (self.options.id) {
+                    try {
+                        params.delete('id')
+                    } catch (e) { };
         	        params.append('id',self.options.id);
         	    };
 
-                $.each(self.options.params,function (key,value) {
-                params.append(key,value);
+            $.each(self.options.params,function (key,value) {
+                if (key!='id') {
+                    params.append(key,value);
+                };
             });
          } else {
                 params=self.element.adorn('get');
@@ -224,18 +268,18 @@ _createDialog : function () {
          };
 
         $.ajax({
-        url: url,
-        data: params,
-        processData: processData,
-        type: 'POST',
-        cache:false,
-        contentType: contentType,
-        dataType:'json',
-        success: function (res) {
-            $.extend(self.options._paramsSended,self.element.adorn('get'));
-            self._afterSave(res);
-        }
-    });
+                url: url,
+                data: params,
+                processData: processData,
+                type: 'POST',
+                cache:false,
+                contentType: contentType,
+                dataType:'json',
+                success: function (res) {
+                    $.extend(self.options._paramsSended,self.element.adorn('get'));
+                    self._afterSave(res);
+                }
+            });
 
     },
 
@@ -304,10 +348,8 @@ _bindToEvents: function () {
             var params={};
             self.element.bind('adorn_queuecomplete',function (e,queueData) {
                     self._afterSave(queueData);
-                });
-            self.element.bind('adorn_onclear',function (e,rrr) {
-                    self.close();
             });
+
             self.element.bind('adorn_onready',function(e,finfo) {
 
                 $.extend(params,self.options.params);
@@ -331,9 +373,13 @@ _bindToEvents: function () {
 },
 _afterSave : function (res) {
           var self=this;
+
+          if (self._trigger('_aftersave',{},{parent:self,result:res})===false) {
+               return false;
+          };
+
           self._clear();
-          self._trigger('_aftersave',{},{parent:self,result:res});
-          self.close();
+          self.close()
       },
 _beforeOpen: function () {
           var self=this;
@@ -345,8 +391,8 @@ _beforeSave: function () {
 },
 _afterCancel : function () {
           var self=this;
-          self._trigger('_aftersave',{},{parent:self});
           self.close();
+          self._trigger('_aftercancel',{},{parent:self});
       },
  setTitle: function (title) {
     this.options.frmObject.dialog('option','title',title);
