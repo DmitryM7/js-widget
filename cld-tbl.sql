@@ -1,0 +1,23 @@
+CREATE TABLE `calendar` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `taxon` varchar(45) DEFAULT NULL,
+  `stbl` varchar(45) DEFAULT NULL,
+  `sid` int(11) DEFAULT NULL,
+  `ttbl` varchar(45) DEFAULT NULL,
+  `tid` int(11) DEFAULT NULL,
+  `currYear` int(4) DEFAULT NULL,
+  `currMonth` int(2) DEFAULT NULL,
+  `currDay` int(2) DEFAULT NULL,
+  `currDateIndex` varchar(45) DEFAULT NULL,
+  `type` varchar(45) DEFAULT NULL,
+  `pid` int(11) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `details` longtext,
+  `comment` longtext,
+  `extParams` longtext,
+  PRIMARY KEY (`id`),
+  KEY `idx_stbl_date_index` (`stbl`,`sid`,`currDateIndex`),
+  KEY `idx_pid_period` (`pid`,`currYear`,`currMonth`),
+  KEY `idx_pid_date_index` (`pid`,`currDateIndex`),
+  KEY `idx_stbl_period` (`stbl`,`sid`,`currYear`,`currMonth`)
+) AUTO_INCREMENT=8580 DEFAULT CHARSET=utf8;
