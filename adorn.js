@@ -283,11 +283,14 @@ $.widget("o.adorn",{
                            // placeholder в IE8
                            // Есть аттрибут плейсхолдер и не произошло изменения содержимого,
                            // то пропускаем значение элемента.
-                           if ($.hasOwnProperty('browser') && $.browser.hasOwnProperty('msie') && $(element).attr('placeholder')!=undefined && $(element).attr('placeholder')!='' && $(element).attr('placeholder')==$(element).val()) {
-                               ds2 = '';
+                           
+if ($.hasOwnProperty('browser') && $.browser.hasOwnProperty('msie') && $(element).attr('placeholder')!=undefined && $(element).attr('placeholder')!='' && $(element).attr('placeholder')==$(element).val()) {
+				                ds2 = '';
                            } else {
-                               d2s = $(element).val();
+                                d2s = $(element).val();
                            };
+
+
 
 
                            postData[$(element).attr('model')] = d2s;
@@ -329,21 +332,59 @@ $.widget("o.adorn",{
 
        return typeof(window.FileReader) == 'undefined' ? false : true;
    },
-    _fillLocal: function () {
-        var self=this,
-            params=self.options.params,
-            jqe,
-            currElementModel;
+   _fillLocal: function () {
+       var self=this,
+           params=self.options.params,
+           jqe,
+           currElementModel,
+           k, v,
+           valueToSet;
 
-        $.each(self.element.find('[model]'),function (index,element) {
-            jqe=$(element);
-            currElementModel=jqe.attr('model');
-            if (params.hasOwnProperty(currElementModel)) {
-                self._fillElement(jqe,params[currElementModel]);
-            };
-        });
-    },
+       $.each(self.element.find('[model]'),function (index,element) {
+           jqe=$(element);
+
+           currElementModel=jqe.attr('model');
+           valueToSet = params.hasOwnProperty(currElementModel) ? params[currElementModel] : '';
+
+
+           if (jqe.is('select')) {
+
+               /**********************************
+                * Если наполняем select из ajax  *
+                **********************************/
+                   if (params.hasOwnProperty(currElementModel + '_option')) {
+                       jqe.empty();
+
+                       $.each (params[currElementModel + '_option'],function (k,v) {
+                           jqe.append('<option value="' + k + '">' + v + '</option>');
+                       });
+
+                   };
+
+               /**
+                * Если элемент селект и принимает два значения истина/ложь,
+                * то нужно чтобы значение которое приходило с сервера было строкой.
+                * Иначе селект работать не будет.
+                */
+                    if (typeof(valueToSet)== 'boolean') {
+                        valueToSet = (valueToSet + '').toLowerCase();
+                    };
+
+               };
+
+
+           /*****************************************************
+            * Если элемент помечен, как не очищаемый,           *
+            * то его не трогаем                                 *
+            *****************************************************/
+               if (jqe.attr('view-as')!='hidden-not-clear') {
+                   self._fillElement(jqe,valueToSet);
+               };
+
+       });
+   },
     _fillElement: function (currElement,value) {
+
         switch (currElement.attr('type')) {
             case "checkbox":
                 if (value=="true" || value=="1" || value===true) {
