@@ -7,6 +7,7 @@ $.widget("o.workcalendar",{
       extParams:{},
       employees:{},
       enableTools:true,
+      _defIcon:'/images/128x128/info.png',
       holidayWeekDay: [6, 7],
       shiftList: [
           {
@@ -153,13 +154,13 @@ $.widget("o.workcalendar",{
            },
            dialogs : {
                holiday:{
-                   title:'Выходной день',
+                title:'Выходной день',
                    comment:'Комментарий'
                },
                work:{
                    title:'Рабочий день',
                    comment:'Комментарий'
-               },
+              },
                info:{
                    title:'Информация',
                    'type':'Тип:'
@@ -170,8 +171,7 @@ $.widget("o.workcalendar",{
                    shift:'Смена'
                }
            }
-       },
-       _defIcon:'/images/128x128/info.png'
+       }
    },
    _create: function(conf) {
        var self=this,
@@ -252,11 +252,7 @@ $.widget("o.workcalendar",{
            infoDialogElement,
            workFlow = self._renderCalendar();
 
-
-
-
             self.element.html('<div class="workcalendar-canvas">' + htmlHeader + workFlow + workDialog + holidayDialog + moveDialog + infoDialog + '</div>');
-
 
  /*****************************************
   * Диалоги                               *
@@ -312,10 +308,10 @@ holidayDialogElement.frm({
                        ev.parent.close();
                    });
                };
-
-               return false;
+              return false;
            }
        });
+
 
 moveDialogElement = self.element.find('.workcalendar-moveDialog').first();
 moveDialogElement.frm({
@@ -324,7 +320,7 @@ moveDialogElement.frm({
                            showButtons: ['save'],
 	        _beforesave:function (e,ev) {
                     var newShift    = $(this).find('.workcalendar-select-shift').first().val(),
-                        moveComment = $(this).find('.workcalendar-moveDialog-comment').val(),
+                        newComment = $(this).find('.workcalendar-moveDialog-comment').val(),
                         currType='move';
 
                         if (ev.action=='save') {
@@ -347,7 +343,6 @@ moveDialogElement.frm({
 
 infoDialogElement = self.element.find('.workcalendar-infoDialog').first();
 infoDialogElement.frm({
-
                            autoOpen:false,
 			               width: '550px',
                            showButtons: ['save'],
@@ -589,10 +584,15 @@ infoDialogElement.frm({
 
              eventTd=self._trigger('_onrederday',{},{currYear:currYear,currMonth:currMonth,currDay:currDay,employeId:id,employe:employe});
 
+
+             if (eventTd===false) {
+                 continue;
+             };
+
              tr = tr + (eventTd==null || eventTd ? '<td class="workcalendar-table-td ' +
                                                                self._getGlobalDayStatus(self.options.currYear,self.options.currMonth,i) +
                                                                ' ' +
-                                                              status.employeDayStatus + '"' +
+                                                              self._getEmployeDayStatus(id,self.options.currYear,self.options.currMonth,i) + '"' +
                                                               ' data-id="' + id + '" data-day="' + i + '">' + status.text + '</td>' : eventTd);
          };          
          tr = tr + '</tr>';
@@ -800,7 +800,14 @@ infoDialogElement.frm({
        };
 
       return params;
-
+ },
+ _createShiftOption: function () {
+     var self=this,
+         r='';
+     $.each(self.options.shiftList,function (k,v) {
+         r += '<option value="' + v.value + '">' + v.option + '</option>';
+     });
+     return r;
  },
  _createShiftOption: function () {
      var self=this,

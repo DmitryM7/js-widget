@@ -211,6 +211,20 @@ _createDialog : function () {
           // Запоминаем первоначальный заголовок
           this.options._title=this.options.frmObject.dialog('option','title');
 
+          var closeButton=$('<div style="position:absolute;right:18px;top:17px"></div>').
+              append($('<a href="#"><img src="../../../images/verstka/close.jpg"></a>').click(function (e) {
+                  self.close();
+                  return false;
+              }));
+
+          if  (!self.options.showTitle) {
+              $('.' + self.options.pid).find('.ui-dialog-titlebar').remove();
+              $('.' + self.options.pid).find('.ui-tabs-nav').append(closeButton);
+          } else {
+              $('.' + self.options.pid).find('.ui-dialog-title').append(closeButton);
+              $('.' + self.options.pid).find('.ui-dialog-titlebar-close').remove();
+          };
+
           self._bindKeyEvents();
       },
 
