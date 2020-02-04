@@ -145,7 +145,7 @@ $.widget("o.workcalendar",{
          "6":"Сб",
          "7":"Вск"
       },
-       labels: {
+      labels: {
            buttons : {
                aswork:'Рабоч.',
                asholiday:'Выход.',
@@ -211,7 +211,7 @@ $.widget("o.workcalendar",{
                          '  </tr>'   +
                          ' </tbody>' +
                          '</table>',
-            moveDialog= '<div class="workcalendar-moveDialog hidden" title="' + options.labels.dialogs.move.title +'">'    +
+            moveDialog= '<div class="workcalendar-moveDialog" title="' + options.labels.dialogs.move.title +'">'    +
                 '<dl>'                                                                                                     +
                 '<dt><label>' + options.labels.dialogs.move.shift + '</label></dt>'                                        +
                 '<dd>'                                                                                                     +
@@ -223,7 +223,7 @@ $.widget("o.workcalendar",{
                 '<dd><textarea class="workcalendar-moveDialog-comment"></textarea></dd>'                                   +
                 '</dl>'                                                                                                    +
                 '</div>',
-            infoDialog = '<div class="workcalendar-infoDialog hidden" title="' + options.labels.dialogs.info.title +'">'   +
+            infoDialog = '<div class="workcalendar-infoDialog" title="' + options.labels.dialogs.info.title +'">'   +
                               '<dl>'                                                                                       +
                                     '<dt><label>' + options.labels.dialogs.info.type +'</label></dt>'                      +
                                     '<dd>'                                                                                 +
@@ -234,13 +234,13 @@ $.widget("o.workcalendar",{
                                     '<dd><textarea class="workcalendar-infoDialog-comment"></textarea></dd>'               +
                                '</dl>'                                                                                     +
                           '</div>',
-            holidayDialog = '<div class="workcalendar-holidayDialog hidden" title="' + options.labels.dialogs.holiday.title + '">' +
+            holidayDialog = '<div class="workcalendar-holidayDialog" title="' + options.labels.dialogs.holiday.title + '">' +
                                 '<dl>' +
                                     '<dt><label>' + options.labels.dialogs.holiday.comment + '</label></dt>' +
                                     '<dd><textarea class="workcalendar-holidayDialog-comment"></textarea></dd>' +
                                     self._createHours() +
                                 '</div>',
-            workDialog = '<div class="workcalendar-workDialog hidden" title="' + options.labels.dialogs.work.title + '">' +
+            workDialog = '<div class="workcalendar-workDialog" title="' + options.labels.dialogs.work.title + '">' +
                 '<dl>' +
                 '<dt><label>' + options.labels.dialogs.work.comment + '</label></dt>' +
                 '<dd><textarea class="workcalendar-workDialog-comment"></textarea></dd>' +
@@ -253,6 +253,7 @@ $.widget("o.workcalendar",{
            workFlow = self._renderCalendar();
 
             self.element.html('<div class="workcalendar-canvas">' + htmlHeader + workFlow + workDialog + holidayDialog + moveDialog + infoDialog + '</div>');
+
 
  /*****************************************
   * Диалоги                               *
@@ -466,7 +467,8 @@ infoDialogElement.frm({
         };
 
         self._remoteRefresh();
-           return false;
+
+      return false;
 
     });
 
@@ -748,12 +750,18 @@ infoDialogElement.frm({
 
         $.extend(params,options.extParams,{currYear:options.currYear,currMonth:options.currMonth});
 
+
+     if (options.hasOwnProperty('url') && options.url != null) {
+
           $.postJSON(options.url,params,function (r) {
                if (r.hasOwnProperty('employees')) {
                    self.options.employees = r.employees;
                    self._initCanvas();      
                };
           });
+     } else {
+         self._initCanvas();
+     };
  },
  _getWorkCalendarParams    : function (params) {
          var selected     = {},
