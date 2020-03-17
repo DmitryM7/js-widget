@@ -1,9 +1,11 @@
 ﻿(function ($, undefined) {
 $.widget("o.workcalendar",{
-   options: {
+options: {
       currYear:null,
       currMonth:null,
       url:null,
+      defAction:'table',
+      modifyAction:'modify',
       extParams:{},
       employees:{},
       enableTools:true,
@@ -112,7 +114,7 @@ $.widget("o.workcalendar",{
           }
       ],
       typeList:{
-          'info':{
+        'info':{
               'text':'Информация',
               'icon':'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADM0lEQVRYhe2VTWgTQRSAJ9WjHkW0ngRrZpuYn00puWiLqId6UhD8w6uCoFJRvL0kpqnYmBRtdmNREP+Dh2qRZtrQ0kgLptoUxDS7m/4QsKi02F4EQX1ebFSym+zGtHjwwbsszPu+efNmlpD/YTQQTW5BquWjueYGUT7QIMoH+Giu2XE9u3lFuY2iwrlEJeSKSrMuUUG15MXcjCuiBPmoZK4a2C1Ita6I8kgLqpqC/J0XlXt8NLPpr+B8VG5xifInQ/A/OqLMOwVlX4Xw3AmXKH+rFF6QEOSvDYJy1BDcKcj7qwH/XYKPKnt1wd2CVMsL0lK5oq19eZxfXML5xSU89zyvR2KhsXt6Y/nWi3JMz67O9U4VBM4+m9LbjTsl4T+vmq5iRx5M4uPUND5OTePh+5O6b0ejOLVNe/eRrKBXwB5OIwWGFBg6whMGrqh0TZ2OaOIFaaFag6c5C12TH9Tb361s0VNg160cPki/x543Hwt5/MmsIQnHbWVDkYA9kmnRs9g/+A6fpOcwKX/4NYS9M4YEGm683V0k4AhPXNSz2NaRQgoMTz98VRA40yMbO4bO9JligWvjASNFzj5VKhawh15DkcCOqy9htQR2BFOXigQs/uSx1RKovzx4sEigDpjZ2aXzQfkLAWdXBusgsbVIoAmG1tqCY19WWsDWMfaZANSovgWcPxFfWQEZOf9wjyqcEEKoJ95iD6dLFmnty2NrXx67R3/9DW+O5gvfS0//OFIP26MpQABqOF8iwwuSZpFlqFZqCkSySH0DaYJo0hYghFBgOy1tSeRF9bYu/4C0UkvA0jb83eztc5eEF2YBWMDaPqIq4QhPlEw1uLV9BDno9+iCE0IIicXWUGAPLYEk8hHt4yibkSxa2pJIgd3VnHytaIKhtRRYhPMm0B4aR5fGkWhNuz00jtSbQDOwThKLrTEE/z04iB8yQ/x9vW8QbcExdN7IlHxkbB1jyPkGkQKbM3vixS9eJbH9ytP1FPovUGA5Cgw5bwIt/mG0Bl6gNfACLf5h5LwDSIGhGeIyB+x8PQytqwr8j0A0mb0DVuphpyiwEAV252eGOIifpMAsZa/ZvxY/AFdVpN9s7LnZAAAAAElFTkSuQmCC'
           },
@@ -174,7 +176,7 @@ $.widget("o.workcalendar",{
            }
        }
    },
-   _create: function(conf) {
+_create: function(conf) {
        var self=this,
            options = self.options,
            currDate = new Date();
@@ -192,7 +194,7 @@ $.widget("o.workcalendar",{
        };
 
    },
-   _initCanvas : function () {
+_initCanvas : function () {
         var self = this,
             options = self.options,
             htmlHeader = '<table border="0">' +
@@ -264,6 +266,7 @@ workDialogElement = self.element.find('.workcalendar-workDialog').first();
 workDialogElement.frm({
            autoOpen:false,
            width: '550px',
+           url:self.options.url,
            showButtons: ['save'],
            _beforesave:function (e,ev) {
                var moveComment = $(this).find('.workcalendar-workDialog-comment').val(),
@@ -277,7 +280,7 @@ workDialogElement.frm({
                        }
                    });
 
-                   $.postJSON(self.options.url,selected,function (res) {
+                   $.postJSON($.createUrl(self.options.url,self.options.modifyAction),selected,function (res) {
                        self._trigger('_onsenddata',{},{selected:selected,res:res,type:currType});
                        ev.parent.close();
                    });
@@ -291,6 +294,9 @@ workDialogElement.frm({
 holidayDialogElement = self.element.find('.workcalendar-holidayDialog').first();
 holidayDialogElement.frm({
            autoOpen:false,
+           url:self.options.url,
+           loadAction:self.options.modifyAction,
+           saveAction:self.options.modifyAction,
            width: '550px',
            showButtons: ['save'],
            _beforesave:function (e,ev) {
@@ -305,7 +311,7 @@ holidayDialogElement.frm({
                        }
                    });
 
-                   $.postJSON(self.options.url,selected,function (res) {
+                   $.postJSON($.createUrl(self.options.url,self.options.modifyAction),selected,function (res) {
                        self._trigger('_onsenddata',{},{selected:selected,res:res,type:currType});
                        ev.parent.close();
                    });
@@ -319,6 +325,9 @@ moveDialogElement = self.element.find('.workcalendar-moveDialog').first();
 moveDialogElement.frm({
                            autoOpen:false,
 			               width: '550px',
+                           url:self.options.url,
+                           loadAction:self.options.modifyAction,
+                           saveAction:self.options.modifyAction,
                            showButtons: ['save'],
 	        _beforesave:function (e,ev) {
                     var newShift    = $(this).find('.workcalendar-select-shift').first().val(),
@@ -346,6 +355,9 @@ moveDialogElement.frm({
 infoDialogElement = self.element.find('.workcalendar-infoDialog').first();
 infoDialogElement.frm({
                            autoOpen:false,
+                           url:self.options.url,
+                           loadAction:self.options.modifyAction,
+                           saveAction:self.options.modifyAction,
 			               width: '550px',
                            showButtons: ['save'],
                           _beforesave:function (e,ev) {
@@ -388,7 +400,26 @@ infoDialogElement.frm({
   });
 
   self.element.find('td.workcalendar-table-td').dblclick(function () {
-        //alert('Нажал два раза');
+      var currElement=$(this),
+          currDateIndex = self._getCurrYearMonth() + self._digitWithZero(currElement.data('day')),
+          currPersonId  = self._getCellPersonId(currElement);
+
+      //Снимаем выделение со всего, что было выделено
+      self.element.find('td.workcalendar-table-td').removeClass('workcalendar-selected');
+
+      //Выделяем ячейку на которой прошел двойной клик
+      currElement.addClass('workcalendar-selected');
+
+      //Определяем ее тип и в зависимости от этого вызываем соответтвующее окно
+      if (currElement.hasClass('workcalendar-table-td-asinfo')) {
+          infoDialogElement.frm('setParam','currDateIndex',currDateIndex);
+          infoDialogElement.frm('setId',currPersonId);
+          infoDialogElement.frm('open');
+          return;
+      };
+
+
+
   });
 
  /*****************************************************
@@ -529,7 +560,7 @@ infoDialogElement.frm({
 
 
    },
-  _renderCalendar:function () {
+_renderCalendar:function () {
       var self=this,
           employees = self.options.employees,
           html = '',
@@ -563,7 +594,7 @@ infoDialogElement.frm({
     return html;
   },
 
- _renderTable: function () {
+_renderTable: function () {
       var self = this,
           employees = self.options.employees,
           employeDayStatus,
@@ -578,9 +609,10 @@ infoDialogElement.frm({
 
 
       $.each(employees,function (id,employe) {
-        tr = '<tr data-id="' + id + '">';
-        tr = '<td>' + iCount + '</td>';
-        tr = tr + '<td>' + employe.title + '</td>';
+        tr = '<tr data-id="' + id + '">' +
+            '<td>' + iCount + '</td>' +
+            '<td>' + employe.title + '</td>';
+
          for (i=1;i<self._getDaysInMonth(currYear,currMonth) + 1;i++) {
              currDay = i;
              status = self._getWorkStatus(id,currYear,currMonth,currDay);
@@ -605,7 +637,7 @@ infoDialogElement.frm({
    return tbl;
 
   },
- _getWorkStatus: function (employeeId,currYear,currMonth,currDay) {
+_getWorkStatus: function (employeeId,currYear,currMonth,currDay) {
         var self = this,
             currDateIndex = currYear + self._digitWithZero(currMonth) + self._digitWithZero(currDay),
             tA={},
@@ -619,13 +651,13 @@ infoDialogElement.frm({
             tA = self.options.employees[employeeId].daysObject[currDateIndex];
         };
 
+
         //Нет никакой информациии о ячейке
         if (!tA.hasOwnProperty('type')) {
              return r;
         };
 
 
-      console.log(tA);
 
         switch (tA.type) {
              case "holiday":
@@ -642,20 +674,17 @@ infoDialogElement.frm({
                  break;
              case "info":
                  r.employeDayStatus='workcalendar-table-td-asinfo';
-                 if (tA.hasOwnProperty('extParams') && tA.extParams != undefined) {
                      if (self.options.typeList.hasOwnProperty(tA.type) && self.options.typeList[tA.type].hasOwnProperty('icon')) {
-                         icon=self.options.typeList.hasOwnProperty(tA.extParams.type) ? self.options.typeList[tA.extParams.type].icon : self.options._defIcon;
+                         icon=self.options.typeList.hasOwnProperty(tA.type) ? self.options.typeList[tA.type].icon : self.options._defIcon;
                          r.text='<img src="' + icon + '"  class="workcalendar-table-td-icon">'
 
                      };
-
-                 };
                 break;
       };
 
      return r;
   },
- _getGlobalDayStatus: function (currYear,currMonth,currDay) {
+_getGlobalDayStatus: function (currYear,currMonth,currDay) {
         var self   = this,
             result = '';
 
@@ -664,7 +693,7 @@ infoDialogElement.frm({
         };
         return result;         
   },
- _getEmployeDayStatus: function (employeId,currYear,currMonth,currDay) {
+_getEmployeDayStatus: function (employeId,currYear,currMonth,currDay) {
         var self   = this,
             result = '',
             currDateIndex = currYear + self._digitWithZero(currMonth) + self._digitWithZero(currDay),
@@ -704,7 +733,7 @@ infoDialogElement.frm({
         
         return result;
   },
- _getDayOfWeek  : function (year,month,day) {
+_getDayOfWeek  : function (year,month,day) {
      /*************************************
       * In standart   ISO-8601            *
       * Monday - 1                        *
@@ -714,17 +743,17 @@ infoDialogElement.frm({
            currDay = currDate.getDay() == 0 ? 7 : currDate.getDay();      
       return currDay;
   },
- _getDaysInMonth: function (year,month) {
+_getDaysInMonth: function (year,month) {
      /**************************************
       * Get from Stackoverlow
       * https://stackoverflow.com/questions/1184334/get-number-days-in-a-specified-month-using-javascript
       **************************************/
      return new Date(year,month, 0).getDate();
   },
- _calcNewYear:function(iYear,iDiff) {
+_calcNewYear:function(iYear,iDiff) {
     return parseInt(iYear) + parseInt(iDiff);
  },
- _calcNewMonth:function(iYear,iMonth,iDiff) {
+_calcNewMonth:function(iYear,iMonth,iDiff) {
     var newYear = parseInt(iYear),
         newMonth = parseInt(iMonth) + parseInt(iDiff);
 
@@ -744,10 +773,10 @@ infoDialogElement.frm({
              month : newMonth
            };
  },
- _digitWithZero: function (iDigit) {
+_digitWithZero: function (iDigit) {
       return iDigit<10 ? '0' + iDigit : '' + iDigit;
  },
- _remoteRefresh: function () {
+_remoteRefresh: function () {
     var self = this,
         options = self.options,
         params = {};
@@ -767,33 +796,25 @@ infoDialogElement.frm({
          self._initCanvas();
      };
  },
- _getWorkCalendarParams    : function (params) {
+_getWorkCalendarParams    : function (params) {
          var selected     = {},
-             selectedOne  = {},
              currType     = params.type,
              self         = this,
-             currYear,
-             currMonth,
              params;
 
-       el = self.element.find('.workcalendar-year-input').first();
-       currYear = $(el).val();
-
-       el = self.element.find('.workcalendar-month-input').first();
-       currMonth = $(el).val();
 
        $.each(self.element.find('.workcalendar-selected'),function (i,el) {
            var currElement = $(el),
-               currDateIndex = currYear + self._digitWithZero(currMonth) + self._digitWithZero(currElement.data('day')),
+               currDateIndex = self._getCurrYearMonth() + self._digitWithZero(currElement.data('day')),
                tA = {},
-               currPersonId = currElement.data('id');
+               currPersonId = self._getCellPersonId(currElement);
                    
                    if (selected.hasOwnProperty(currPersonId)) {
-                       tA[currDateIndex] = {currYear:currYear,currMonth:currMonth,currDay:currElement.data('day'),type:currType,extParams:params.extParams};
+                       tA[currDateIndex] = {currDateIndex:currDateIndex,type:currType,extParams:params.extParams};
                        $.extend(selected[currPersonId].daysObject, tA);
                    }
                    else {
-                     tA[currDateIndex] = {currYear:currYear,currMonth:currMonth,currDay:currElement.data('day'),type:currType,extParams:params.extParams};
+                     tA[currDateIndex] = {currDateIndex:currDateIndex,type:currType,extParams:params.extParams};
                      selected[currPersonId]= {daysObject:tA};
                    };
 
@@ -813,7 +834,7 @@ infoDialogElement.frm({
 
       return params;
  },
- _createShiftOption: function () {
+_createShiftOption: function () {
      var self=this,
          r='';
      $.each(self.options.shiftList,function (k,v) {
@@ -821,7 +842,7 @@ infoDialogElement.frm({
      });
      return r;
  },
- _createShiftOption: function () {
+_createShiftOption: function () {
      var self=this,
          r='';
      $.each(self.options.shiftList,function (k,v) {
@@ -829,7 +850,7 @@ infoDialogElement.frm({
      });
      return r;
  },
- _createInfoListOption: function () {
+_createInfoListOption: function () {
      var self=this,
          r='';
 
@@ -838,11 +859,24 @@ infoDialogElement.frm({
      });
    return r;
  },
- _createHours:function () {
+_getCellPersonId:function (currElement) {
+        return currElement.parent().first().data('id');
+    },
+_createHours:function () {
      return '';
  },
- _getCellPersonId:function (currElement) {
-     return currElement.parent().data('id');
- }
+_getCurrYearMonth: function () {
+    var  self=this,
+         el;
+
+    el = self.element.find('.workcalendar-year-input').first();
+    currYear = $(el).val();
+
+    el = self.element.find('.workcalendar-month-input').first();
+    currMonth = $(el).val();
+
+    return currYear + self._digitWithZero(currMonth);
+
+}
 });
 })( jQuery );

@@ -341,7 +341,7 @@ _doAction     : function (name,params,onEndAction) {
             });
         },
 _makeUrl      : function (action) {
-            return this.options.url + (action != null ? '/' + action : "");
+            return $.createUrl(this.options.url,action);
         },
 _bindToEvents: function () {
             var self=this;
