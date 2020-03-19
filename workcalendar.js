@@ -4,7 +4,7 @@ options: {
       currYear:null,
       currMonth:null,
       url:null,
-      defAction:'table',
+      defAction:null,
       modifyAction:'modify',
       extParams:{},
       employees:{},
@@ -342,7 +342,7 @@ moveDialogElement.frm({
                             });
 
 
-                            $.postJSON(self.options.url,selected,function (res) {
+                            $.postJSON($.createUrl(self.options.url,self.options.modifyAction),selected,function (res) {
                                 self._trigger('_onsenddata',{},{selected:selected,res:res,type:currType});
                                 ev.parent.close();
                             });
@@ -373,7 +373,7 @@ infoDialogElement.frm({
                                                type:type
                                            }
                                        });
-                                       $.postJSON(self.options.url,selected,function (res) {
+                                       $.postJSON($.createUrl(self.options.url,self.options.modifyAction),selected,function (res) {
                                            self._trigger('_onsenddata',{},{selected:selected,res:res,type:currType});
                                            ev.parent.close();
                                        });
@@ -786,7 +786,7 @@ _remoteRefresh: function () {
 
      if (options.hasOwnProperty('url') && options.url != null) {
 
-          $.postJSON(options.url,params,function (r) {
+          $.postJSON($.createUrl(self.options.url,self.options.defAction),params,function (r) {
                if (r.hasOwnProperty('employees')) {
                    self.options.employees = r.employees;
                    self._initCanvas();      
