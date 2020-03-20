@@ -230,12 +230,12 @@ _initCanvas : function () {
                               '<dl>'                                                                                       +
                                     '<dt><label>' + options.labels.dialogs.info.type +'</label></dt>'                      +
                                     '<dd>'                                                                                 +
-                                    '<select class="workcalendar-infoDialog-infotype">'                                    +
-                                         self._createInfoListOption()                                                      +
-                                    '</select>'                                                                            +
-                                    '</dd>'                                                                                +
-                                    '<dd><textarea class="workcalendar-infoDialog-comment"></textarea></dd>'               +
-                               '</dl>'                                                                                     +
+                                    '<select class="workcalendar-infoDialog-infotype" model="type">'                         +
+                                         self._createInfoListOption()                                                        +
+                                    '</select>'                                                                              +
+                                    '</dd>'                                                                                  +
+                                    '<dd><textarea class="workcalendar-infoDialog-comment" model="comment"></textarea></dd>' +
+                               '</dl>'                                                                                       +
                           '</div>',
             holidayDialog = '<div class="workcalendar-holidayDialog" title="' + options.labels.dialogs.holiday.title + '">' +
                                 '<dl>' +
@@ -268,6 +268,7 @@ workDialogElement.frm({
            width: '550px',
            url:self.options.url,
            showButtons: ['save'],
+           params:self.options.extParams,
            _beforesave:function (e,ev) {
                var moveComment = $(this).find('.workcalendar-workDialog-comment').val(),
                    currType='aswork';
@@ -298,6 +299,7 @@ holidayDialogElement.frm({
            loadAction:self.options.modifyAction,
            saveAction:self.options.modifyAction,
            width: '550px',
+           params:self.options.extParams,
            showButtons: ['save'],
            _beforesave:function (e,ev) {
                var holidayComment = $(this).find('.workcalendar-holidayDialog-comment').val(),
@@ -329,6 +331,7 @@ moveDialogElement.frm({
                            loadAction:self.options.modifyAction,
                            saveAction:self.options.modifyAction,
                            showButtons: ['save'],
+    params:self.options.extParams,
 	        _beforesave:function (e,ev) {
                     var newShift    = $(this).find('.workcalendar-select-shift').first().val(),
                         newComment = $(this).find('.workcalendar-moveDialog-comment').val(),
@@ -360,6 +363,7 @@ infoDialogElement.frm({
                            saveAction:self.options.modifyAction,
 			               width: '550px',
                            showButtons: ['save'],
+                           params:self.options.extParams,
                           _beforesave:function (e,ev) {
                                 var infoComment = $(this).find('.workcalendar-infoDialog-comment').val(),
                                     type        = $(this).find('.workcalendar-infoDialog-infotype').val(),
@@ -539,21 +543,25 @@ infoDialogElement.frm({
   ****************************************************/
 
         self.element.find('.workcalendar-button-aswork').first().click(function (e) {
+            workDialogElement.frm('setId',null);
             workDialogElement.frm('open');
             return;
         });
 
         self.element.find('.workcalendar-button-asholiday').first().click(function (e) {
+            holidayDialogElement.frm('setId',null);
             holidayDialogElement.frm('open');
             return;
         });
 
        self.element.find('.workcalendar-button-asmove').first().click(function(e){
+           moveDialogElement.frm('setId',null);
            moveDialogElement.frm('open');
            return;
        });
 
        self.element.find('.workcalendar-button-asinfo').first().click(function(e){
+           infoDialogElement.frm('setId',null);
            infoDialogElement.frm('open');
            return;
        });
