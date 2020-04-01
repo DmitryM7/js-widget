@@ -45,7 +45,8 @@ open : function () {
      * по средствам AJAX мы не получим.
      ***************************************/
 
-          if (this.options.id==null) {
+
+          if (this.options.id==null || !this.options.hasOwnProperty('loadAction') || this.options.loadAction==null) {
               this.options.frmObject.dialog('open');
           };
 },
@@ -211,20 +212,6 @@ _createDialog : function () {
           // Запоминаем первоначальный заголовок
           this.options._title=this.options.frmObject.dialog('option','title');
 
-          var closeButton=$('<div style="position:absolute;right:18px;top:17px"></div>').
-              append($('<a href="#"><img src="../../../images/verstka/close.jpg"></a>').click(function (e) {
-                  self.close();
-                  return false;
-              }));
-
-          if  (!self.options.showTitle) {
-              $('.' + self.options.pid).find('.ui-dialog-titlebar').remove();
-              $('.' + self.options.pid).find('.ui-tabs-nav').append(closeButton);
-          } else {
-              $('.' + self.options.pid).find('.ui-dialog-title').append(closeButton);
-              $('.' + self.options.pid).find('.ui-dialog-titlebar-close').remove();
-          };
-
           self._bindKeyEvents();
       },
 
@@ -236,6 +223,7 @@ _createDialog : function () {
         var self=this,
             url=self._makeUrl(self.options.saveAction),
             params,
+            tryToSend,
             hasFileReader = self.element.adorn('hasFileReader'),
             processData = !hasFileReader,
             contentType = hasFileReader ? false : 'application/x-www-form-urlencoded; charset=UTF-8';
@@ -243,6 +231,10 @@ _createDialog : function () {
           // Если есть считыватель файлов, то adorn вернет
           // FormData иначе {}
 
+
+        tryToSend=self.element.adorn('get');
+        tryToSend['id']=self.options.id;
+        $.extend(tryToSend,self.options.params);
 
          if (hasFileReader) {
             params = new FormData();
@@ -262,10 +254,14 @@ _createDialog : function () {
                 };
             });
          } else {
-                params=self.element.adorn('get');
-                params['id']=self.options.id;
-                $.extend(params,self.options.params);
+                params=tryToSend;
          };
+
+        if (self._beforeSend(tryToSend)===false) {
+            return;
+        };
+
+
 
         $.ajax({
                 url: url,
@@ -297,7 +293,13 @@ _fillRemote : function () {
             $.extend(self.options.params,{id:self.options.id});
 
 
+    if (!self.options.hasOwnProperty('loadAction') || self.options.loadAction==null) {
+        return;
+    };
+
+
     if (self.options.id!=undefined) {
+
 
         this._doAction(self.options.loadAction,self.options.params,function (result) {
             self.element.adorn('fillElements',result);
@@ -389,6 +391,10 @@ _beforeSave: function () {
           var self = this;
           return self._trigger('_beforesave',{},{parent:self,action:self.options._currAction});
 },
+_beforeSend: function (params) {
+    var self=this;
+    return self._trigger('_beforesend',{},{parent:self,action:self.options._currAction,params:params});
+},
 _afterCancel : function () {
           var self=this;
           self.close();
@@ -424,6 +430,7 @@ _bindKeyEvents: function () {
           };
 
 }
+
 });
 })( jQuery );
 
