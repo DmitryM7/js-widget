@@ -433,50 +433,6 @@ if ($.hasOwnProperty('browser') && $.browser.hasOwnProperty('msie') && $(element
         self.options.fu.uploadify('settings','uploader',url);
         self.options.fu.uploadify('settings','formData',params);
         self.options.fu.uploadify('upload','*');
-    },
-    postJson: function (url) {
-        var self=this,
-            hasFileReader = self.hasFileReader(),
-            params,
-            processData = !hasFileReader,
-            contentType = hasFileReader ? false : 'application/x-www-form-urlencoded; charset=UTF-8';
-
-        if (hasFileReader) {
-            params = new FormData();
-            params=self.get(params);
-
-
-            if (self.options.id) {
-                try {
-                    params.delete('id')
-                } catch (e) { };
-                params.append('id',self.options.id);
-            };
-
-            $.each(self.options.params,function (key,value) {
-                if (key!='id') {
-                    params.append(key,value);
-                };
-            });
-        } else {
-            params=self.get();
-//            params['id']=self.options.id;
-            $.extend(params,self.options.params);
-        };
-
-        $.ajax({
-            url: url,
-            data: params,
-            processData: processData,
-            type: 'POST',
-            cache:false,
-            contentType: contentType,
-            dataType:'json',
-            success: function (res) {
-                $.extend(self.options._paramsSended,self.element.adorn('get'));
-                self._afterSave(res);
-            }
-        });
     }
 
   });
