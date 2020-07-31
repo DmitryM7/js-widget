@@ -111,6 +111,9 @@ _create : function (conf) {
     $.extend(this.options,conf);
     this.options.frmObject = this.element;
     this._createDialog();
+
+    this._trigger('_aftercreate',{},{parent:this});
+
 },
 
       /**
@@ -132,7 +135,7 @@ _createDialog : function () {
                 self.options._currAction=self.options.applyAction;
                 self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
 
-                if (self._beforeSave()===false) {
+                if (self._beforeSave({button:'apply'})===false) {
                     return;
                 };
                 self._saveEdit();
@@ -146,9 +149,9 @@ _createDialog : function () {
             text:'Сохранить',
             click:function () {
                 self.options._currAction=self.options.saveAction;
-                self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
+                self._trigger('_onclick',{},{parent:self,action:self.options._currAction,button:'save'});
 
-                if (self._beforeSave()===false) {
+                if (self._beforeSave({button:'save'})===false) {
                     return;
                 };
                 self._saveEdit();
@@ -165,7 +168,7 @@ _createDialog : function () {
                 self.options._currAction=self.options.okAction;
                 self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
 
-                if (self._beforeSave()===false) {
+                if (self._beforeSave({button:'ok'})===false) {
                     return;
                 };
                 self._saveEdit();
@@ -387,9 +390,9 @@ _beforeOpen: function () {
           var self=this;
           return self._trigger('_beforeopen',{},{parent:self});
 },
-_beforeSave: function () {
+_beforeSave: function (p) {
           var self = this;
-          return self._trigger('_beforesave',{},{parent:self,action:self.options._currAction});
+          return self._trigger('_beforesave',{},{parent:self,action:self.options._currAction,button: p.button});
 },
 _beforeSend: function (params) {
     var self=this;
@@ -420,7 +423,7 @@ _bindKeyEvents: function () {
                       self.options._currAction=self.options.okAction;
                       self._trigger('_onclick',{},{parent:self,action:self.options._currAction});
 
-                      if (self._beforeSave()===false) {
+                      if (self._beforeSave({button:'ctrl+enter'})===false) {
                           return;
                       };
 
