@@ -9,6 +9,11 @@ options: {
       extParams:{},
       employees:{},
       enableTools:true,
+      timeConfig: {
+          begTime :'09:00',
+          endTime :'18:00',
+          timeSlot:60
+      },
       _defIcon:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADM0lEQVRYhe2VTWgTQRSAJ9WjHkW0ngRrZpuYn00puWiLqId6UhD8w6uCoFJRvL0kpqnYmBRtdmNREP+Dh2qRZtrQ0kgLptoUxDS7m/4QsKi02F4EQX1ebFSym+zGtHjwwbsszPu+efNmlpD/YTQQTW5BquWjueYGUT7QIMoH+Giu2XE9u3lFuY2iwrlEJeSKSrMuUUG15MXcjCuiBPmoZK4a2C1Ita6I8kgLqpqC/J0XlXt8NLPpr+B8VG5xifInQ/A/OqLMOwVlX4Xw3AmXKH+rFF6QEOSvDYJy1BDcKcj7qwH/XYKPKnt1wd2CVMsL0lK5oq19eZxfXML5xSU89zyvR2KhsXt6Y/nWi3JMz67O9U4VBM4+m9LbjTsl4T+vmq5iRx5M4uPUND5OTePh+5O6b0ejOLVNe/eRrKBXwB5OIwWGFBg6whMGrqh0TZ2OaOIFaaFag6c5C12TH9Tb361s0VNg160cPki/x543Hwt5/MmsIQnHbWVDkYA9kmnRs9g/+A6fpOcwKX/4NYS9M4YEGm683V0k4AhPXNSz2NaRQgoMTz98VRA40yMbO4bO9JligWvjASNFzj5VKhawh15DkcCOqy9htQR2BFOXigQs/uSx1RKovzx4sEigDpjZ2aXzQfkLAWdXBusgsbVIoAmG1tqCY19WWsDWMfaZANSovgWcPxFfWQEZOf9wjyqcEEKoJ95iD6dLFmnty2NrXx67R3/9DW+O5gvfS0//OFIP26MpQABqOF8iwwuSZpFlqFZqCkSySH0DaYJo0hYghFBgOy1tSeRF9bYu/4C0UkvA0jb83eztc5eEF2YBWMDaPqIq4QhPlEw1uLV9BDno9+iCE0IIicXWUGAPLYEk8hHt4yibkSxa2pJIgd3VnHytaIKhtRRYhPMm0B4aR5fGkWhNuz00jtSbQDOwThKLrTEE/z04iB8yQ/x9vW8QbcExdN7IlHxkbB1jyPkGkQKbM3vixS9eJbH9ytP1FPovUGA5Cgw5bwIt/mG0Bl6gNfACLf5h5LwDSIGhGeIyB+x8PQytqwr8j0A0mb0DVuphpyiwEAV252eGOIifpMAsZa/ZvxY/AFdVpN9s7LnZAAAAAElFTkSuQmCC',
       holidayWeekDay: [6, 7],
       shiftList: [
@@ -238,10 +243,15 @@ _initCanvas : function () {
                                '</dl>'                                                                                       +
                           '</div>',
             holidayDialog = '<div class="workcalendar-holidayDialog" title="' + options.labels.dialogs.holiday.title + '">' +
-                                '<dl>' +
-                                    '<dt><label>' + options.labels.dialogs.holiday.comment + '</label></dt>' +
-                                    '<dd><textarea class="workcalendar-holidayDialog-comment"></textarea></dd>' +
+                                '<div class="workcalendar-div-column1">'                 +
                                     self._createHours() +
+                                '</div>'                +
+                                '<div class="workcalendar-div-column2">' +
+                                    '<dl>' +
+                                        '<dt><label>' + options.labels.dialogs.holiday.comment + '</label></dt>' +
+                                        '<dd><textarea class="workcalendar-holidayDialog-comment"></textarea></dd>' +
+                                     '</dl>' +
+                                '</div>'     +
                                 '</div>',
             workDialog = '<div class="workcalendar-workDialog" title="' + options.labels.dialogs.work.title + '">' +
                 '<dl>' +
@@ -289,11 +299,25 @@ workDialogElement.frm({
                };
 
                return false;
-           }
+           },
+    _aftercreate:function (e,ev) {
+
+        $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').mousedown(function(){
+            $(this).toggleClass('workcalendar-selected');
+
+            $('tr.workcalendar-hours-tr').on('mouseenter',function(){
+                $(this).toggleClass('workcalendar-selected');
+            });
+
+        }).mouseup(function(){
+            $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').off('mouseenter');
+        });
+
+    }
        });
 
-holidayDialogElement = self.element.find('.workcalendar-holidayDialog').first();
-holidayDialogElement.frm({
+ holidayDialogElement = self.element.find('.workcalendar-holidayDialog').first();
+ holidayDialogElement.frm({
            autoOpen:false,
            url:self.options.url,
            loadAction:self.options.modifyAction,
@@ -319,12 +343,26 @@ holidayDialogElement.frm({
                    });
                };
               return false;
+           },
+           _aftercreate: function (e,ev) {
+               /* Событие на изменение ячеек времени */
+
+               $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').mousedown(function(){
+                   $(this).toggleClass('workcalendar-selected');
+
+                   $('tr.workcalendar-hours-tr').on('mouseenter',function(){
+                       $(this).toggleClass('workcalendar-selected');
+                   });
+
+               }).mouseup(function(){
+                   $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').off('mouseenter');
+               });
            }
        });
 
 
-moveDialogElement = self.element.find('.workcalendar-moveDialog').first();
-moveDialogElement.frm({
+ moveDialogElement = self.element.find('.workcalendar-moveDialog').first();
+ moveDialogElement.frm({
                            autoOpen:false,
 			               width: '550px',
                            url:self.options.url,
@@ -355,8 +393,8 @@ moveDialogElement.frm({
                   }
         });
 
-infoDialogElement = self.element.find('.workcalendar-infoDialog').first();
-infoDialogElement.frm({
+ infoDialogElement = self.element.find('.workcalendar-infoDialog').first();
+ infoDialogElement.frm({
                            autoOpen:false,
                            url:self.options.url,
                            loadAction:self.options.modifyAction,
@@ -369,7 +407,8 @@ infoDialogElement.frm({
                                     type        = $(this).find('.workcalendar-infoDialog-infotype').val(),
                                     currType='info';
 
-                                   if (ev.action=='save') {
+
+                                   if (ev.button=='save' || ev.button=='ctrl+enter') {
                                        var selected=self._getWorkCalendarParams({
                                            'type':currType,
                                            'extParams': {
@@ -391,18 +430,19 @@ infoDialogElement.frm({
  /****************************************
   * События на изменение ячеек таблицы   *
   ****************************************/
-
-  self.element.find('td.workcalendar-table-td').mousedown(function(){
-    $(this).toggleClass('workcalendar-selected');
+ self.element.find('td.workcalendar-table-td').mousedown(function(){
+     $(this).toggleClass('workcalendar-selected');
 
      self.element.find('td.workcalendar-table-td').on('mouseenter',function(){
-      $(this).toggleClass('workcalendar-selected');
-    });
+         $(this).toggleClass('workcalendar-selected');
+     });
 
-  }).mouseup(function(){
-    $('td.workcalendar-table-td').off('mouseenter');
-  });
+ }).mouseup(function(){
+     $('td.workcalendar-table-td').off('mouseenter');
+ });
 
+
+ /* Событие на ыделение одной ячейки */
   self.element.find('td.workcalendar-table-td').dblclick(function () {
       var currElement=$(this),
           currDateIndex = self._getCurrYearMonth() + self._digitWithZero(currElement.data('day')),
@@ -426,7 +466,7 @@ infoDialogElement.frm({
 
   });
 
- /*****************************************************
+  /*****************************************************
   * События обработки кнопок изменения года.          *
   *****************************************************/
   $(self.element.find('.workcalendar-left-year').first()).click(function (e) {
@@ -473,7 +513,7 @@ infoDialogElement.frm({
 
   });
 
- /*****************************************************
+  /*****************************************************
   * События обработки кнопок изменения месяца.        *
   *****************************************************/
 
@@ -542,32 +582,30 @@ infoDialogElement.frm({
   * События нажатия на кнопки изменения статуса дня  *
   ****************************************************/
 
-        self.element.find('.workcalendar-button-aswork').first().click(function (e) {
+  self.element.find('.workcalendar-button-aswork').first().click(function (e) {
             workDialogElement.frm('setId',null);
             workDialogElement.frm('open');
             return;
         });
 
-        self.element.find('.workcalendar-button-asholiday').first().click(function (e) {
+  self.element.find('.workcalendar-button-asholiday').first().click(function (e) {
             holidayDialogElement.frm('setId',null);
             holidayDialogElement.frm('open');
             return;
         });
 
-       self.element.find('.workcalendar-button-asmove').first().click(function(e){
+  self.element.find('.workcalendar-button-asmove').first().click(function(e){
            moveDialogElement.frm('setId',null);
            moveDialogElement.frm('open');
            return;
        });
 
-       self.element.find('.workcalendar-button-asinfo').first().click(function(e){
+  self.element.find('.workcalendar-button-asinfo').first().click(function(e){
            infoDialogElement.frm('setId',null);
            infoDialogElement.frm('open');
            return;
        });
-
-
-   },
+},
 _renderCalendar:function () {
       var self=this,
           employees = self.options.employees,
@@ -601,7 +639,6 @@ _renderCalendar:function () {
       html = html + '</table>';
     return html;
   },
-
 _renderTable: function () {
       var self = this,
           employees = self.options.employees,
@@ -870,8 +907,34 @@ _createInfoListOption: function () {
 _getCellPersonId:function (currElement) {
         return currElement.parent().first().data('id');
     },
-_createHours:function () {
-     return '';
+_createHours:function (tConf) {
+    var self=this,
+        timeConfig=tConf == undefined ? self.options.timeConfig : tConf,
+        timeSlot=timeConfig.timeSlot*60*1000,
+        timeBegHours=timeConfig.begTime.split(':')[0],
+        timeBegMinutess=timeConfig.begTime.split(':')[1],
+        timeEndHours=timeConfig.endTime.split(':')[0],
+        timeEndMinutes=timeConfig.endTime.split(':')[1],
+        tsBegTime=(new Date((timeBegHours*3600 + timeBegMinutess * 60)*1000)).getTime(),
+        tsEndTime=(new Date((timeEndHours*3600 + timeEndMinutes * 60) * 1000)).getTime(),
+        dayDuration=tsEndTime - tsBegTime,
+        r='';
+
+
+
+    r+='<table border="1" class="workcalendar-hours-table"><tr><th>Начало</th><th>Завершение</th><th>Ком-рий</th></tr>';
+
+    for (i=tsBegTime;i<tsEndTime;i+=timeSlot) {
+        var nBegTime = new Date(i),nEndTime = new Date(i+timeSlot);
+
+        r+='<tr class="workcalendar-hours-tr">' +
+            '<td class="workcalendar-hours-td">' + $.str_pad(nBegTime.getUTCHours(),2,'0',-1) + ':' + $.str_pad(nBegTime.getUTCMinutes(),2,'0',-1) + '</td>' +
+            '<td class="workcalendar-hours-td">' + $.str_pad(nEndTime.getUTCHours(),2,'0',-1) + ':' + $.str_pad(nEndTime.getUTCMinutes(),2,'0',-1) + '</td>' +
+            '<td class="workcalendar-hours-td">-</td>'
+            '</tr>';
+    };
+    r+='</table>';
+         return r;
  },
 _getCurrYearMonth: function () {
     var  self=this,
