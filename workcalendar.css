@@ -96,8 +96,9 @@
 }
 
 .workcalendar-hours-tr {
-
+    cursor: pointer;
 }
 .workcalendar-hours-td {
 
 }
+
