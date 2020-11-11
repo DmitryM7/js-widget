@@ -59,7 +59,7 @@ $.widget("o.adorn",{
            jel=$(element);
            switch (jel.attr('view-as')) {
                case "datepicker":
-                   jel.datepicker();
+                   jel.datepicker({showWeek: true});
                    break;
                case "fileupload":
                    self.options.fu=jel;
@@ -156,28 +156,14 @@ $.widget("o.adorn",{
                case "tinymce":
                    jel.tinymce({
                        toolbar: [
-                           'undo redo | bold italic | link image | alignleft aligncenter alignright | forecolor backcolor | numlist bullist'
+                           'undo redo | bold italic | link image | alignleft aligncenter alignright | forecolor backcolor | numlist bullist | image'
                            ],
                        language:'ru',
                        menubar: 'edit insert format table tools',
                        statusbar: false,
-                       plugins : ['emoticons template paste textcolor colorpicker textpattern imagetools lists table link'],
-                       table_grid:true,
-                       theme_advanced_buttons3 : "table,tablecontrols,row_props,cell_props,delete_col,delete_row,col_after,col_before,row_after,row_before,split_cells,merge_cells",
-		       table_styles : "Header 1=header1;Header 2=header2;Header 3=header3",
-	               table_cell_styles : "Header 1=header1;Header 2=header2;Header 3=header3;Table Cell=tableCel1",
-		       table_row_styles : "Header 1=header1;Header 2=header2;Header 3=header3;Table Row=tableRow1",
-		       relative_urls: false,
-                       remove_script_host: false
+                       plugins : ['emoticons template paste textcolor colorpicker textpattern image imagetools lists']
                    });
                    break;
-                case "tagit":
-                    jel.tagit({
-                      allowSpaces:true,
-                      fieldName: jel.attr('model'),
-                      singleField:true
-                    });
-                break;
            };
        });
 
@@ -291,17 +277,20 @@ $.widget("o.adorn",{
                                    formData.append($(element).attr('model'),$(element).prop('value'));
                                };
                            };
-                           break;
+                       break;
                        default:
                            // Правильно обрабатываем случай когда используется
                            // placeholder в IE8
                            // Есть аттрибут плейсхолдер и не произошло изменения содержимого,
                            // то пропускаем значение элемента.
-                           if ($.browser.msie && $(element).attr('placeholder')!=undefined && $(element).attr('placeholder')!='' && $(element).attr('placeholder')==$(element).val()) {
-			      ds2 = '';
+                           
+if ($.hasOwnProperty('browser') && $.browser.hasOwnProperty('msie') && $(element).attr('placeholder')!=undefined && $(element).attr('placeholder')!='' && $(element).attr('placeholder')==$(element).val()) {
+				                ds2 = '';
                            } else {
-                              d2s = $(element).val();
+                                d2s = $(element).val();
                            };
+
+
 
 
                            postData[$(element).attr('model')] = d2s;
@@ -344,25 +333,64 @@ $.widget("o.adorn",{
        return typeof(window.FileReader) == 'undefined' ? false : true;
    },
    _fillLocal: function () {
-       var self=this;
-       var params=self.options.params;
-       var jqe,currElementModel;
+       var self=this,
+           params=self.options.params,
+           jqe,
+           currElementModel,
+           k, v,
+           valueToSet;
 
        $.each(self.element.find('[model]'),function (index,element) {
            jqe=$(element);
+
            currElementModel=jqe.attr('model');
-           if (params.hasOwnProperty(currElementModel)) {
-               self._fillElement(jqe,params[currElementModel]);
-           };
+           valueToSet = params.hasOwnProperty(currElementModel) ? params[currElementModel] : '';
+
+
+           if (jqe.is('select')) {
+
+               /**********************************
+                * Если наполняем select из ajax  *
+                **********************************/
+                   if (params.hasOwnProperty(currElementModel + '_option')) {
+                       jqe.empty();
+
+                       $.each (params[currElementModel + '_option'],function (k,v) {
+                           jqe.append('<option value="' + k + '">' + v + '</option>');
+                       });
+
+                   };
+
+               /**
+                * Если элемент селект и принимает два значения истина/ложь,
+                * то нужно чтобы значение которое приходило с сервера было строкой.
+                * Иначе селект работать не будет.
+                */
+                    if (typeof(valueToSet)== 'boolean') {
+                        valueToSet = (valueToSet + '').toLowerCase();
+                    };
+
+               };
+
+
+           /*****************************************************
+            * Если элемент помечен, как не очищаемый,           *
+            * то его не трогаем                                 *
+            *****************************************************/
+               if (jqe.attr('view-as')!='hidden-not-clear') {
+                   self._fillElement(jqe,valueToSet);
+               };
+
        });
    },
     _fillElement: function (currElement,value) {
+
         switch (currElement.attr('type')) {
             case "checkbox":
-                if (value=="true" || value=="1") {
-                    currElement.attr('checked',true);
+                if (value=="true" || value=="1" || value===true) {
+                    currElement.prop('checked',true);
                 } else {
-                    currElement.removeAttr('checked');
+                    currElement.prop('checked',false);
                 };
                 break;
             case "radio":
@@ -373,7 +401,17 @@ $.widget("o.adorn",{
                 }
                 break;
             default:
-                currElement.val(value);
+                try {
+                    //************************************************************************
+                    //* Ряд элементов может создавать дополнительные элементы dom элементы   *
+                    //* при этом копирует остальные элементы в том числе и аттрибуты model.  *
+                    //* Так как мы заранее не знаем поддерживают ли эти тэги метод val,      *
+                    //* то обрабатываем ошибку.                                              *
+                    //************************************************************************
+                    currElement.val(value);
+                } catch (err) {
+                    //
+                };
                 break;
         };
 
