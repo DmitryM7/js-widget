@@ -31,7 +31,7 @@ setParam: function(paramName,paramValue) {
       return;
   };
   this.options.params[paramName]=paramValue;
-    console.log(this.options.params);
+
 },
 /** Открыть **/
 open : function () {
