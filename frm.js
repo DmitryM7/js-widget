@@ -432,9 +432,16 @@ _bindKeyEvents: function () {
               });
           };
 
-}
+},
 
-});
+      unsetParam: function (key) {
+          if (this.options.params.hasOwnProperty(key)) {
+              delete this.options.params[key];
+          };
+      },
+
+
+  });
 })( jQuery );
 
 
