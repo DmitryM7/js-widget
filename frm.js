@@ -448,7 +448,13 @@ _fillFormData: function (FormData, data, name){
         } else {
             FormData.append(name, data);
         }
-    }
+    },
+      unsetParam: function (key) {
+          if (this.options.params.hasOwnProperty(key)) {
+              delete this.options.params[key];
+          };
+      },
 
-});
+
+  });
 })( jQuery );

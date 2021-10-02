@@ -328,8 +328,3 @@ jQuery.extend({
   })( jQuery );
 
 var isiPad = navigator.userAgent.match(/iPad/i) != null;
-
-
-
-
-
