@@ -31,6 +31,7 @@ setParam: function(paramName,paramValue) {
       return;
   };
   this.options.params[paramName]=paramValue;
+
 },
 /** Открыть **/
 open : function () {
@@ -231,10 +232,8 @@ _createDialog : function () {
             processData = !hasFileReader,
             contentType = hasFileReader ? false : 'application/x-www-form-urlencoded; charset=UTF-8';
 
-          // Если есть считыватель файлов, то adorn вернет
-          // FormData иначе {}
-
-
+        // Если передаем в качестве параметра ссылку на считыватель файлов, то adorn вернет
+        // FormData иначе {}
         tryToSend=self.element.adorn('get');
         tryToSend['id']=self.options.id;
         $.extend(tryToSend,self.options.params);
@@ -244,18 +243,15 @@ _createDialog : function () {
             params=self.element.adorn('get',params);
 
 
-        	    if (self.options.id) {
+        	if (self.options.id) {
                     try {
                         params.delete('id')
                     } catch (e) { };
         	        params.append('id',self.options.id);
         	    };
 
-            $.each(self.options.params,function (key,value) {
-                if (key!='id') {
-                    params.append(key,value);
-                };
-            });
+            self._fillFormData(params,self.options.params);
+
          } else {
                 params=tryToSend;
          };
@@ -263,8 +259,6 @@ _createDialog : function () {
         if (self._beforeSend(tryToSend)===false) {
             return;
         };
-
-
 
         $.ajax({
                 url: url,
@@ -433,7 +427,28 @@ _bindKeyEvents: function () {
           };
 
 },
-
+      /*******************************************
+       * Взято с https://stackoverflow.com/questions/22783108/convert-js-object-to-form-data
+       * @param FormData
+       * @param data
+       * @param name
+       * @private
+       */
+_fillFormData: function (FormData, data, name){
+    var self=this;
+        name = name || '';
+        if (typeof data === 'object'){
+            $.each(data, function(index, value){
+                if (name == ''){
+                    self._fillFormData(FormData, value, index);
+                } else {
+                    self._fillFormData(FormData, value, name + '['+index+']');
+                }
+            })
+        } else {
+            FormData.append(name, data);
+        }
+    },
       unsetParam: function (key) {
           if (this.options.params.hasOwnProperty(key)) {
               delete this.options.params[key];
@@ -443,5 +458,3 @@ _bindKeyEvents: function () {
 
   });
 })( jQuery );
-
-

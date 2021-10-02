@@ -1,11 +1,13 @@
-﻿(function ($, undefined) {
+﻿﻿(function ($, undefined) {
 $.widget("o.workcalendar",{
 options: {
       currYear:null,
       currMonth:null,
       url:null,
-      defAction:null,
+      defAction:'table',
       modifyAction:'modify',
+      saveAction:'save',
+      clearAction:'clear',
       extParams:{},
       employees:{},
       enableTools:true,
@@ -118,8 +120,8 @@ options: {
               option:'24-ая (24:00 - 09:00)'
           }
       ],
-      typeList:{
-        'info':{
+      categoryList:{
+        'WCK_AS_INFO':{
               'text':'Информация',
               'icon':'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADM0lEQVRYhe2VTWgTQRSAJ9WjHkW0ngRrZpuYn00puWiLqId6UhD8w6uCoFJRvL0kpqnYmBRtdmNREP+Dh2qRZtrQ0kgLptoUxDS7m/4QsKi02F4EQX1ebFSym+zGtHjwwbsszPu+efNmlpD/YTQQTW5BquWjueYGUT7QIMoH+Giu2XE9u3lFuY2iwrlEJeSKSrMuUUG15MXcjCuiBPmoZK4a2C1Ita6I8kgLqpqC/J0XlXt8NLPpr+B8VG5xifInQ/A/OqLMOwVlX4Xw3AmXKH+rFF6QEOSvDYJy1BDcKcj7qwH/XYKPKnt1wd2CVMsL0lK5oq19eZxfXML5xSU89zyvR2KhsXt6Y/nWi3JMz67O9U4VBM4+m9LbjTsl4T+vmq5iRx5M4uPUND5OTePh+5O6b0ejOLVNe/eRrKBXwB5OIwWGFBg6whMGrqh0TZ2OaOIFaaFag6c5C12TH9Tb361s0VNg160cPki/x543Hwt5/MmsIQnHbWVDkYA9kmnRs9g/+A6fpOcwKX/4NYS9M4YEGm683V0k4AhPXNSz2NaRQgoMTz98VRA40yMbO4bO9JligWvjASNFzj5VKhawh15DkcCOqy9htQR2BFOXigQs/uSx1RKovzx4sEigDpjZ2aXzQfkLAWdXBusgsbVIoAmG1tqCY19WWsDWMfaZANSovgWcPxFfWQEZOf9wjyqcEEKoJ95iD6dLFmnty2NrXx67R3/9DW+O5gvfS0//OFIP26MpQABqOF8iwwuSZpFlqFZqCkSySH0DaYJo0hYghFBgOy1tSeRF9bYu/4C0UkvA0jb83eztc5eEF2YBWMDaPqIq4QhPlEw1uLV9BDno9+iCE0IIicXWUGAPLYEk8hHt4yibkSxa2pJIgd3VnHytaIKhtRRYhPMm0B4aR5fGkWhNuz00jtSbQDOwThKLrTEE/z04iB8yQ/x9vW8QbcExdN7IlHxkbB1jyPkGkQKbM3vixS9eJbH9ytP1FPovUGA5Cgw5bwIt/mG0Bl6gNfACLf5h5LwDSIGhGeIyB+x8PQytqwr8j0A0mb0DVuphpyiwEAV252eGOIifpMAsZa/ZvxY/AFdVpN9s7LnZAAAAAElFTkSuQmCC'
           },
@@ -145,20 +147,21 @@ options: {
       },
 // ISO-8601
       _dayNames: {
-         "1":"Пнд",
+         "1":"Пн",
          "2":"Вт",
          "3":"Ср",
          "4":"Чт",
          "5":"Пт",
          "6":"Сб",
-         "7":"Вск"
+         "7":"Вс"
       },
       labels: {
            buttons : {
                aswork:'Рабоч.',
                asholiday:'Выход.',
                asmove:'Смещ.',
-               asinfo:'Инфо'
+               asinfo:'Инфо',
+               asclear:'Очист.'
            },
            dialogs : {
                holiday:{
@@ -212,10 +215,12 @@ _initCanvas : function () {
                          '   <td><input type="text" name="month" class="workcalendar-month-input" model="workcalendar-year" value="' + self.options.currMonth + '" size="4"></td>' +
                          '   <td><input type="button" class="workcalendar-right-month workcalendar-right-btn"></td>' +
                          (
-                         options.enableTools ? '<td><input type="button" value="' + options.labels.buttons.aswork + '" class="workcalendar-button-aswork"></td>'    +
+                         options.enableTools ? '<td><input type="button" value="' + options.labels.buttons.aswork    + '" class="workcalendar-button-aswork"></td>'    +
                                                '<td><input type="button" value="' + options.labels.buttons.asholiday + '" class="workcalendar-button-asholiday"></td>' +
-                                               '<td><input type="button" value="' + options.labels.buttons.asmove + '" class="workcalendar-button-asmove"></td>'    +
-                                               '<td><input type="button" value="' + options.labels.buttons.asinfo + '" class="workcalendar-button-asinfo"></td>' : '') +
+                                               '<td><input type="button" value="' + options.labels.buttons.asmove    + '" class="workcalendar-button-asmove"></td>'    +
+                                               '<td><input type="button" value="' + options.labels.buttons.asinfo    + '" class="workcalendar-button-asinfo"></td>' +
+                                               '<td><input type="button" value="' + options.labels.buttons.asclear   + '" class="workcalendar-button-asclear"></td>'
+                                              : '') +
                          '  </tr>'   +
                          ' </tbody>' +
                          '</table>',
@@ -223,43 +228,53 @@ _initCanvas : function () {
                 '<dl>'                                                                                                     +
                 '<dt><label>' + options.labels.dialogs.move.shift + '</label></dt>'                                        +
                 '<dd>'                                                                                                     +
-                '<select class="workcalendar-select-shift">'                                                               +
+                '<select class="workcalendar-select-shift" model="shift">'                                                 +
                     self._createShiftOption()                                                                              +
                 '</select>'                                                                                                +
                 '</dd>'                                                                                                    +
                 '<dt><label>' + options.labels.dialogs.move.comment + '</label><dt>'                                       +
-                '<dd><textarea class="workcalendar-moveDialog-comment"></textarea></dd>'                                   +
+                '<dd><textarea class="workcalendar-moveDialog-comment" model="comment"></textarea></dd>'                                   +
                 '</dl>'                                                                                                    +
                 '</div>',
             infoDialog = '<div class="workcalendar-infoDialog" title="' + options.labels.dialogs.info.title +'">'   +
                               '<dl>'                                                                                       +
                                     '<dt><label>' + options.labels.dialogs.info.type +'</label></dt>'                      +
                                     '<dd>'                                                                                 +
-                                    '<select class="workcalendar-infoDialog-infotype" model="type">'                         +
+                                    '<select class="workcalendar-infoDialog-infotype" model="category">'                   +
                                          self._createInfoListOption()                                                        +
                                     '</select>'                                                                              +
-                                    '</dd>'                                                                                  +
+                                    '</dd>' +
+                                        '<div class="workcalendar-div-column1">'                                                     +
+                                        '<label>Весь день:</label><input type="checkbox" model="wholeday" class="workcalendar-infoDialog-wholeday">' +
+                                            self._createHours()                                                                      +
+                                        '</div>'+
                                     '<dd><textarea class="workcalendar-infoDialog-comment" model="comment"></textarea></dd>' +
                                '</dl>'                                                                                       +
                           '</div>',
             holidayDialog = '<div class="workcalendar-holidayDialog" title="' + options.labels.dialogs.holiday.title + '">'  +
                                 '<div class="workcalendar-div-column1">'                                                     +
-                                '<label>Весь день:</label><input type="checkbox" model="allDay" class="workcalendar-holidayDialog-allDay">' +
+                                '<label>Весь день:</label><input type="checkbox" model="wholeday" class="workcalendar-holidayDialog-wholeday">' +
                                     self._createHours()                                                                      +
                                 '</div>'                                                                                     +
                                 '<div class="workcalendar-div-column2">' +
                                     '<dl>' +
                                         '<dt><label>' + options.labels.dialogs.holiday.comment + '</label></dt>' +
-                                        '<dd><textarea class="workcalendar-holidayDialog-comment"></textarea></dd>' +
+                                        '<dd><textarea class="workcalendar-holidayDialog-comment" model="comment"></textarea></dd>' +
                                      '</dl>' +
                                 '</div>'     +
                                 '</div>',
             workDialog = '<div class="workcalendar-workDialog" title="' + options.labels.dialogs.work.title + '">' +
+                '<div class="workcalendar-div-column1">' +
+                '<label>Весь день:</label>' +
+                '<input type="checkbox" model="wholeday" class="workcalendar-workDialog-wholeday">' +
+                 self._createHours() +
+                '</div>' +
+                '<div class="workcalendar-div-column2">' +
                 '<dl>' +
                 '<dt><label>' + options.labels.dialogs.work.comment + '</label></dt>' +
-                '<dd><textarea class="workcalendar-workDialog-comment"></textarea></dd>' +
-                '<label>Весь день:</label><input type="checkbox" model="allDay" class="workcalendar-workDialog-allDay">' +
-                self._createHours() +
+                '<dd><textarea class="workcalendar-workDialog-comment" model="comment"></textarea></dd>' +
+                '</dl>' +
+                '</div>' +
                 '</div>',
            workDialogElement,
            holidayDialogElement,
@@ -278,47 +293,43 @@ workDialogElement = self.element.find('.workcalendar-workDialog').first();
 workDialogElement.frm({
            autoOpen:false,
            width: '550px',
-           url:self.options.url,
-           showButtons: ['save'],
+    url:self.options.url,
+    loadAction:self.options.modifyAction,
+    saveAction:self.options.saveAction,
+    showButtons: ['save'],
            params:self.options.extParams,
            _beforesave:function (e,ev) {
                var moveComment = $(this).find('.workcalendar-workDialog-comment').val(),
-                   currType='aswork';
+                   currType='WCK_AS_WORK',
+                   selected=self._getWorkCalendarParams({
+                            'type':currType,
+                            'extParams': {
+                              newComment:moveComment
+                            }
+                   }),
+                   selectedHours=self._getSelectedHours($(this));
 
-                  if (ev.action=='save') {
-                    var selected=self._getWorkCalendarParams({
-                       'type':currType,
-                       'extParams': {
-                           newComment:moveComment
-                       }
-                   });
-
-                   $.postJSON($.createUrl(self.options.url,self.options.modifyAction),selected,function (res) {
-                       self._trigger('_onsenddata',{},{selected:selected,res:res,type:currType});
-                       ev.parent.close();
-                   });
-
-               };
-
-               return false;
+                   ev.parent.setParam('days',selected);
+                   ev.parent.setParam('hours',selectedHours);
            },
            _aftercreate:function (e,ev) {
 
-        $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').mousedown(function(){
-            $(this).toggleClass('workcalendar-selected');
+                    $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').mousedown(function(){
+                        $(this).toggleClass('workcalendar-selected');
 
-            $('tr.workcalendar-hours-tr').on('mouseenter',function(){
-                $(this).toggleClass('workcalendar-selected');
-            });
+                        $('tr.workcalendar-hours-tr').on('mouseenter',function(){
+                        $(this).toggleClass('workcalendar-selected');
+                    });
 
-        }).mouseup(function(){
-            $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').off('mouseenter');
-        });
+                    }).mouseup(function(){
+                    $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').off('mouseenter');
+                    });
 
     },
-           _afterload  :function (e,p,r) {
-               if (p.frmObject.find('.workcalendar-workDialog').find('.workcalendar-workDialog-allDay').checked()) {
-                 alert('Я нажат');
+           _afterload  :function (e,ev) {
+               self._clearSelectedHours($(this));
+               if (ev.result.hasOwnProperty('hours')) {
+                   self._setSelectedHours($(this),ev.result.hours);
                };
            }
        });
@@ -328,27 +339,32 @@ workDialogElement.frm({
            autoOpen:false,
            url:self.options.url,
            loadAction:self.options.modifyAction,
+           saveAction:self.options.saveAction,
            width: '550px',
            params:self.options.extParams,
            showButtons: ['save'],
+           _afterload : function (e,ev) {
+               self._clearSelectedHours($(this));
+               if (ev.result.hasOwnProperty('hours')) {
+                   self._setSelectedHours($(this),ev.result.hours);
+               };
+
+           },
            _beforesave:function (e,ev) {
-               var holidayComment = $(this).find('.workcalendar-holidayDialog-comment').val(),
-                   currType='asholiday';
-               console.log(ev.action);
-               if (ev.action=='save') {
-                   var selected=self._getWorkCalendarParams({
+               var newComment = $(this).find('.workcalendar-holidayDialog-comment').val(),
+                   currType='WCK_AS_HOLIDAY',
+                   selected=self._getWorkCalendarParams({
                        'type':currType,
                        'extParams': {
-                           holidayComment:holidayComment
+                           newComment:newComment
                        }
-                   });
+                   }),
+                   selectedHours=self._getSelectedHours($(this));
 
-                   $.postJSON($.createUrl(self.options.url,self.options.modifyAction),selected,function (res) {
-                       self._trigger('_onsenddata',{},{selected:selected,res:res,type:currType});
-                       ev.parent.close();
-                   });
-               };
-              return false;
+                   ev.parent.setParam('days',selected);
+                   ev.parent.setParam('hours',selectedHours);
+
+
            },
            _aftercreate: function (e,ev) {
                /* Событие на изменение ячеек времени */
@@ -373,30 +389,24 @@ workDialogElement.frm({
 			               width: '550px',
                            url:self.options.url,
                            loadAction:self.options.modifyAction,
-                           saveAction:self.options.modifyAction,
+                           saveAction:self.options.saveAction,
                            showButtons: ['save'],
-    params:self.options.extParams,
+                           params:self.options.extParams,
 	        _beforesave:function (e,ev) {
                     var newShift    = $(this).find('.workcalendar-select-shift').first().val(),
                         newComment = $(this).find('.workcalendar-moveDialog-comment').val(),
-                        currType='move';
-
-                        if (ev.action=='save') {
-
-                            var selected=self._getWorkCalendarParams({
+                        currType='WCK_AS_MOVE',
+                        selected=self._getWorkCalendarParams({
                                 'type':currType,
                                 'extParams':{newShift:newShift,newComment:newComment}
                             });
 
 
-                            $.postJSON($.createUrl(self.options.url,self.options.modifyAction),selected,function (res) {
-                                self._trigger('_onsenddata',{},{selected:selected,res:res,type:currType});
-                                ev.parent.close();
-                            });
-                        };
 
-                        return false;
-                  }
+                            ev.parent.setParam('days',selected);
+
+
+                    }
         });
 
  infoDialogElement = self.element.find('.workcalendar-infoDialog').first();
@@ -404,31 +414,50 @@ workDialogElement.frm({
                            autoOpen:false,
                            url:self.options.url,
                            loadAction:self.options.modifyAction,
+                           saveAction:self.options.saveAction,
                            width: '550px',
                            showButtons: ['save'],
                            params:self.options.extParams,
-                          _beforesave:function (e,ev) {
+
+     _afterload : function (e,ev) {
+         self._clearSelectedHours($(this));
+         if (ev.result.hasOwnProperty('hours')) {
+             self._setSelectedHours($(this),ev.result.hours);
+         };
+
+     },
+     _beforesave:function (e,ev) {
                                 var infoComment = $(this).find('.workcalendar-infoDialog-comment').val(),
                                     type        = $(this).find('.workcalendar-infoDialog-infotype').val(),
-                                    currType='info';
-
-
-                                   if (ev.button=='save' || ev.button=='ctrl+enter') {
-                                       var selected=self._getWorkCalendarParams({
+                                    currType='WCK_AS_INFO',
+                                    selected=self._getWorkCalendarParams({
                                            'type':currType,
                                            'extParams': {
                                                newComment:infoComment,
                                                type:type
                                            }
-                                       });
-                                       $.postJSON($.createUrl(self.options.url,self.options.modifyAction),selected,function (res) {
-                                           self._trigger('_onsenddata',{},{selected:selected,res:res,type:currType});
-                                           ev.parent.close();
-                                       });
-                                   };
+                                       }),
+                                    selectedHours=self._getSelectedHours($(this));
 
-                                   return false;
-                          }
+                              ev.parent.setParam('days',selected);
+                              ev.parent.setParam('hours',selectedHours);
+
+
+                          },
+     _aftercreate: function (e,ev) {
+         /* Событие на изменение ячеек времени */
+
+         $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').mousedown(function(){
+             $(this).toggleClass('workcalendar-selected');
+
+             $('tr.workcalendar-hours-tr').on('mouseenter',function(){
+                 $(this).toggleClass('workcalendar-selected');
+             });
+
+         }).mouseup(function(){
+             $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').off('mouseenter');
+         });
+     }
         });
 
 
@@ -451,7 +480,8 @@ workDialogElement.frm({
   self.element.find('td.workcalendar-table-td').dblclick(function () {
       var currElement=$(this),
           currDateIndex = self._getCurrYearMonth() + self._digitWithZero(currElement.data('day')),
-          currPersonId  = self._getCellPersonId(currElement);
+          currPersonId  = self._getCellPersonId(currElement),
+          currWck=currElement.data('wck');
 
       //Снимаем выделение со всего, что было выделено
       self.element.find('td.workcalendar-table-td').removeClass('workcalendar-selected');
@@ -462,8 +492,30 @@ workDialogElement.frm({
       //Определяем ее тип и в зависимости от этого вызываем соответтвующее окно
       if (currElement.hasClass('workcalendar-table-td-asinfo')) {
           infoDialogElement.frm('setParam','currDateIndex',currDateIndex);
-          infoDialogElement.frm('setId',currPersonId);
+          infoDialogElement.frm('setId',currWck);
           infoDialogElement.frm('open');
+          return;
+      };
+
+      if (currElement.hasClass('workcalendar-table-td-asholiday')) {
+          holidayDialogElement.frm('setParam','currDateIndex',currDateIndex);
+          holidayDialogElement.frm('setId',currWck);
+          holidayDialogElement.frm('open');
+          return;
+      };
+
+      if (currElement.hasClass('workcalendar-table-td-aswork')) {
+          workDialogElement.frm('setParam','currDateIndex',currDateIndex);
+          workDialogElement.frm('setId',currWck);
+          workDialogElement.frm('open');
+          return;
+      };
+
+
+      if (currElement.hasClass('workcalendar-table-td-asmove')) {
+          moveDialogElement.frm('setParam','currDateIndex',currDateIndex);
+          moveDialogElement.frm('setId',currWck);
+          moveDialogElement.frm('open');
           return;
       };
 
@@ -481,7 +533,7 @@ workDialogElement.frm({
        
         $(el).val(newYear);
 
-         self.options.currYear = newYear;
+         self.options.currYear  = newYear;
          self.options.currMonth = newMonth;
 
         if (self._trigger('_onchangeperiod',{},{
@@ -610,6 +662,25 @@ workDialogElement.frm({
            infoDialogElement.frm('open');
            return;
        });
+
+
+    self.element.find('.workcalendar-button-asclear').first().click(function (e) {
+        var params={
+            days:self._getWorkCalendarParams({
+                'type':'clear',
+                'extParams': {
+                    newComment:'*** NONE ***'
+                }
+            })
+        };
+
+        $.extend(params,self.options.extParams);
+
+            $.postJSON($.createUrl(self.options.url,self.options.clearAction),params,function (e) {
+
+        });
+        return;
+    });
 },
 _renderCalendar:function () {
       var self=this,
@@ -667,7 +738,7 @@ _renderTable: function () {
              currDay = i;
              status = self._getWorkStatus(id,currYear,currMonth,currDay);
 
-             eventTd=self._trigger('_onrederday',{},{currYear:currYear,currMonth:currMonth,currDay:currDay,employeId:id,employe:employe});
+             eventTd=self._trigger('_onrenderday',{},{currYear:currYear,currMonth:currMonth,currDay:currDay,employeId:id,employe:employe});
 
 
              if (eventTd===false) {
@@ -677,8 +748,13 @@ _renderTable: function () {
              tr = tr + (eventTd==null || eventTd ? '<td class="workcalendar-table-td ' +
                                                                self._getGlobalDayStatus(self.options.currYear,self.options.currMonth,i) +
                                                                ' ' +
-                                                              self._getEmployeDayStatus(id,self.options.currYear,self.options.currMonth,i) + '"' +
-                                                              ' data-id="' + id + '" data-day="' + i + '">' + status.text + '</td>' : eventTd);
+                                                              status.employeDayStatus + '"' +
+                                                              ' data-id="' + id + '"' +
+                                                              ' data-day="' + i + '"' +
+                                                              (status.hasOwnProperty('wck') ? ' data-wck="' + status.wck + '"' : '') +
+                                                              '>' +
+                                                              status.text + '</td>'
+                                         : eventTd);
          };          
          tr = tr + '</tr>';
          tbl = tbl + tr;
@@ -693,7 +769,7 @@ _getWorkStatus: function (employeeId,currYear,currMonth,currDay) {
             tA={},
             r = {
                 employeDayStatus:'workcalendar-table-td-common',
-                text:'X'
+                text:''
             },
             icon;
 
@@ -701,35 +777,41 @@ _getWorkStatus: function (employeeId,currYear,currMonth,currDay) {
             tA = self.options.employees[employeeId].daysObject[currDateIndex];
         };
 
-
         //Нет никакой информациии о ячейке
         if (!tA.hasOwnProperty('type')) {
              return r;
         };
 
 
-
         switch (tA.type) {
-             case "holiday":
+             case "WCK_AS_HOLIDAY":
                  r.employeDayStatus='workcalendar-table-td-asholiday';
+                 r.text= tA.hasOwnProperty('wholeday') && !tA.wholeday  ? "В'" : "В";
                  break;
-             case "work":
+             case "WCK_AS_WORK":
                 r.employeDayStatus='workcalendar-table-td-aswork';
+                r.text= tA.hasOwnProperty('wholeday') && !tA.wholeday  ? "Р'" : "Р";
                 break;
-             case "move":
+             case "WCK_AS_MOVE":
                 r.employeDayStatus='workcalendar-table-td-asmove';
-                 if (tA.hasOwnProperty('extParams') && tA.extParams != undefined && tA.extParams.hasOwnProperty('newShift')) {
-                     r.text=tA.extParams.newShift;
+                 if (tA.hasOwnProperty('shift')) {
+                     r.text=tA.shift;
                  };
                  break;
-             case "info":
+             case "WCK_AS_INFO":
                  r.employeDayStatus='workcalendar-table-td-asinfo';
-                     if (self.options.typeList.hasOwnProperty(tA.type) && self.options.typeList[tA.type].hasOwnProperty('icon')) {
-                         icon=self.options.typeList.hasOwnProperty(tA.type) ? self.options.typeList[tA.type].icon : self.options._defIcon;
+                 if (!tA.hasOwnProperty('category')) {
+                     tA.category='WCK_AS_INFO';
+                 };
+                     if (self.options.categoryList.hasOwnProperty(tA.category) && self.options.categoryList[tA.category].hasOwnProperty('icon')) {
+                         icon=self.options.categoryList.hasOwnProperty(tA.category) ? self.options.categoryList[tA.category].icon : self.options._defIcon;
                          r.text='<img src="' + icon + '"  class="workcalendar-table-td-icon">'
-
                      };
                 break;
+      };
+
+      if (tA.hasOwnProperty('id')) {
+          r.wck=tA.id;
       };
 
      return r;
@@ -742,46 +824,6 @@ _getGlobalDayStatus: function (currYear,currMonth,currDay) {
             result = result + 'workcalendar-td-holiday';
         };
         return result;         
-  },
-_getEmployeDayStatus: function (employeId,currYear,currMonth,currDay) {
-        var self   = this,
-            result = '',
-            currDateIndex = currYear + self._digitWithZero(currMonth) + self._digitWithZero(currDay),
-            currDateObj ;
-
-
-        if (!self.options.employees[employeId].hasOwnProperty('daysObject')) {
-            return '';
-        };
-
-        if (!self.options.employees[employeId].daysObject.hasOwnProperty(currDateIndex)) {
-            return '';
-        };
-
-
-        currDateObj =self.options.employees[employeId].daysObject[currDateIndex];
-
-         if (!currDateObj.hasOwnProperty('type')) {
-                return '';
-         };
-
-        switch (currDateObj.type) {
-             case "holiday":
-                   return 'workcalendar-table-td-asholiday';
-              break;
-              case "work":
-                   return 'workcalendar-table-td-aswork';
-               break;                 
-               case "move":
-                    return 'workcalendar-table-td-asmove';
-               break;                 
-               case "info":
-                   return 'workcalendar-table-td-asinfo';
-               break;
-         };
-
-        
-        return result;
   },
 _getDayOfWeek  : function (year,month,day) {
      /*************************************
@@ -839,8 +881,9 @@ _remoteRefresh: function () {
           $.postJSON($.createUrl(self.options.url,self.options.defAction),params,function (r) {
                if (r.hasOwnProperty('employees')) {
                    self.options.employees = r.employees;
-                   self._initCanvas();      
                };
+
+              self._initCanvas();
           });
      } else {
          self._initCanvas();
@@ -860,8 +903,8 @@ _getWorkCalendarParams    : function (params) {
                currPersonId = self._getCellPersonId(currElement);
                    
                    if (selected.hasOwnProperty(currPersonId)) {
-                       tA[currDateIndex] = {currDateIndex:currDateIndex,type:currType,extParams:params.extParams};
-                       $.extend(selected[currPersonId].daysObject, tA);
+                     tA[currDateIndex] = {currDateIndex:currDateIndex,type:currType,extParams:params.extParams};
+                     $.extend(selected[currPersonId].daysObject, tA);
                    }
                    else {
                      tA[currDateIndex] = {currDateIndex:currDateIndex,type:currType,extParams:params.extParams};
@@ -884,6 +927,22 @@ _getWorkCalendarParams    : function (params) {
 
       return params;
  },
+_getSelectedHours : function (parentElement) {
+    var r=[];
+    $.each (parentElement.find('.workcalendar-hours-tr.workcalendar-selected'),function (k,v) {
+        r.push({begTime: $(v).data('beg-time'),endTime: $(v).data('end-time')});
+    });
+
+    return r;
+},
+_clearSelectedHours: function (parentElement) {
+    parentElement.find('.workcalendar-hours-tr.workcalendar-selected').removeClass('workcalendar-selected');
+},
+_setSelectedHours : function (parentElement,hours) {
+    $.each (hours,function (k,v) {
+        parentElement.find('.workcalendar-hours-tr[data-beg-time="'+v['begtime']+'"][data-end-time="'+v['endtime']+'"]').addClass('workcalendar-selected');
+    });
+},
 _createShiftOption: function () {
      var self=this,
          r='';
@@ -896,7 +955,7 @@ _createInfoListOption: function () {
      var self=this,
          r='';
 
-     $.each(self.options.typeList,function (k,v) {
+     $.each(self.options.categoryList,function (k,v) {
         r += '<option value="' + k + '">' + v.text + '</option>';
      });
    return r;
@@ -919,7 +978,8 @@ _createHours:function (tConf) {
 
 
 
-    r+='<table border="1" class="workcalendar-hours-table">' +
+    r+='<div class="workcalendar-hours-div">' +
+        '<table border="1" class="workcalendar-hours-table">' +
         '<tr>' +
         '<th>Начало</th><th>Завершение</th><th>Ком-рий</th>' +
         '</tr>';
@@ -927,15 +987,16 @@ _createHours:function (tConf) {
     for (i=tsBegTime;i<tsEndTime;i+=timeSlot) {
         var nBegTime = new Date(i),nEndTime = new Date(i+timeSlot);
 
-        r+='<tr class="workcalendar-hours-tr">' +
+        r+='<tr class="workcalendar-hours-tr" data-beg-time="' + nBegTime.getTime() + '" data-end-time="' + nEndTime.getTime() + '">' +
             '<td class="workcalendar-hours-td">' + $.str_pad(nBegTime.getUTCHours(),2,'0',-1) + ':' + $.str_pad(nBegTime.getUTCMinutes(),2,'0',-1) + '</td>' +
             '<td class="workcalendar-hours-td">' + $.str_pad(nEndTime.getUTCHours(),2,'0',-1) + ':' + $.str_pad(nEndTime.getUTCMinutes(),2,'0',-1) + '</td>' +
             '<td class="workcalendar-hours-td">-</td>'
             '</tr>';
     };
-    r+='</table>';
+    r+='</table></div>';
          return r;
  },
+
 _getCurrYearMonth: function () {
     var  self=this,
          el;
