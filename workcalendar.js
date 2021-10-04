@@ -331,7 +331,10 @@ workDialogElement.frm({
                if (ev.result.hasOwnProperty('hours')) {
                    self._setSelectedHours($(this),ev.result.hours);
                };
-           }
+           },
+          _aftersave: function (e,ev) {
+              self._trigger('_aftersave',{},{});
+          }
        });
 
  holidayDialogElement = self.element.find('.workcalendar-holidayDialog').first();
@@ -379,6 +382,9 @@ workDialogElement.frm({
                }).mouseup(function(){
                    $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').off('mouseenter');
                });
+           },
+            _aftersave: function (e,ev) {
+                self._trigger('_aftersave',{},{});
            }
        });
 
@@ -406,7 +412,10 @@ workDialogElement.frm({
                             ev.parent.setParam('days',selected);
 
 
-                    }
+            },
+            _aftersave: function (e,ev) {
+                self._trigger('_aftersave',{},{});
+            }
         });
 
  infoDialogElement = self.element.find('.workcalendar-infoDialog').first();
@@ -457,8 +466,11 @@ workDialogElement.frm({
          }).mouseup(function(){
              $(ev.parent.options.frmObject).find('tr.workcalendar-hours-tr').off('mouseenter');
          });
+     },
+     _aftersave: function (e,ev) {
+         self._trigger('_aftersave',{},{});
      }
-        });
+});
 
 
  /****************************************
@@ -676,8 +688,8 @@ workDialogElement.frm({
 
         $.extend(params,self.options.extParams);
 
-            $.postJSON($.createUrl(self.options.url,self.options.clearAction),params,function (e) {
-
+        $.postJSON($.createUrl(self.options.url,self.options.clearAction),params,function (e) {
+                    self._trigger('_aftersave',{},{});
         });
         return;
     });
@@ -773,7 +785,8 @@ _getWorkStatus: function (employeeId,currYear,currMonth,currDay) {
             },
             icon;
 
-        if (self.options.employees.hasOwnProperty(employeeId) && self.options.employees[employeeId].hasOwnProperty('daysObject') && self.options.employees[employeeId].daysObject.hasOwnProperty(currDateIndex)) {
+        if (self.options.employees.hasOwnProperty(employeeId) && self.options.employees[employeeId].hasOwnProperty('daysObject')
+            && self.options.employees[employeeId].daysObject.hasOwnProperty(currDateIndex)) {
             tA = self.options.employees[employeeId].daysObject[currDateIndex];
         };
 
