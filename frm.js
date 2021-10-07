@@ -453,6 +453,14 @@ _fillFormData: function (FormData, data, name){
           if (this.options.params.hasOwnProperty(key)) {
               delete this.options.params[key];
           };
+      },
+      save: function () {
+          var self=this;
+
+          if (self._beforeSave({button:'__program_trigger__'})===false) {
+              return;
+          };
+          self._saveEdit();
       }
 
   });
